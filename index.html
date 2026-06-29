@@ -630,26 +630,26 @@
     };
 
     const DEVICES = [
-      { id: "machine-1", name: "一号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5c9cbabc5e4d4f86d3d1c3cf/data", template: "spark" },
-      { id: "machine-2", name: "二号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/50b309806794fa02d3af8a1a/data", template: "spark" },
-      { id: "machine-3", name: "三号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5e5855c4b42b30b5505d6578/data", template: "spark" },
       { id: "haitian", name: "海天注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5cbcff39f5080260d3a80a46/data", template: "haitian" },
-      { id: "machine-7", name: "七号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/51024f92bc2d2d5afccf6d3c/data", template: "inject_basic" },
-      { id: "machine-12", name: "十二号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5099153117a52fee3759a8d4/data", template: "inject_basic" },
-      { id: "machine-31", name: "三十一号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/513bfc35a8a9c4919b97edba/data", template: "inject_basic" },
-      { id: "machine-6", name: "六号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5216dd1d5449b00a1274c954/data", template: "inject_basic" },
-      { id: "machine-5", name: "五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5301ebf52f344c2ec34a95ca/data", template: "inject_basic" },
+      { id: "dequn", name: "德群注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5641cfccae728b3afbe43524/data", template: "dequn" },
+      { id: "dequn-2", name: "德群注塑机（2）", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5dc0b3b73ac71f86ef5e4335/data", template: "dequn2" },
       { id: "aiko", name: "爱科注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5306c01019f0f69171b9c007/data", template: "aiko" },
+      { id: "aiko-2", name: "爱科注塑机（2）", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5ac84dea13320e21e1da8d59/data", template: "aiko2" },
+      { id: "machine-5", name: "五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5301ebf52f344c2ec34a95ca/data", template: "inject_basic" },
+      { id: "machine-6", name: "六号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5216dd1d5449b00a1274c954/data", template: "inject_basic" },
+      { id: "machine-7", name: "七号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/51024f92bc2d2d5afccf6d3c/data", template: "inject_basic" },
+      { id: "machine-8", name: "八号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5b9eec3f2799ed35577c71d8/data", template: "inject_basic" },
+      { id: "machine-12", name: "十二号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5099153117a52fee3759a8d4/data", template: "inject_basic" },
+      { id: "machine-15", name: "十五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5668bffae7eef7d66a8ecde4/data", template: "inject_basic" },
+      { id: "machine-16", name: "十六号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5916adfa564b615521117dfa/data", template: "inject_basic" },
       { id: "machine-17", name: "十七号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/54ce6e35d17cef3f91f8768e/data", template: "inject_basic" },
       { id: "machine-20", name: "二十号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/54ce6e35d17cef3f91f8768e/data", template: "inject_basic" },
-      { id: "machine-25", name: "二十五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/563bb56a2d4158d7960b7e83/data", template: "inject_basic" },
-      { id: "dequn", name: "德群注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5641cfccae728b3afbe43524/data", template: "dequn" },
-      { id: "machine-15", name: "十五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5668bffae7eef7d66a8ecde4/data", template: "inject_basic" },
       { id: "machine-23", name: "二十三号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5668bffae7eef7d66a8ecde4/data", template: "inject_basic" },
-      { id: "machine-16", name: "十六号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5916adfa564b615521117dfa/data", template: "inject_basic" },
-      { id: "aiko-2", name: "爱科注塑机（2）", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5ac84dea13320e21e1da8d59/data", template: "aiko2" },
-      { id: "machine-8", name: "八号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5b9eec3f2799ed35577c71d8/data", template: "inject_basic" },
-      { id: "dequn-2", name: "德群注塑机（2）", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5dc0b3b73ac71f86ef5e4335/data", template: "dequn2" }
+      { id: "machine-25", name: "二十五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/563bb56a2d4158d7960b7e83/data", template: "inject_basic" },
+      { id: "machine-31", name: "三十一号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/513bfc35a8a9c4919b97edba/data", template: "inject_basic" },
+      { id: "machine-1", name: "一号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5c9cbabc5e4d4f86d3d1c3cf/data", template: "spark" },
+      { id: "machine-2", name: "二号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/50b309806794fa02d3af8a1a/data", template: "spark" },
+      { id: "machine-3", name: "三号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5e5855c4b42b30b5505d6578/data", template: "spark" }
     ];
 
     const state = {
