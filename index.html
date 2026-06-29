@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设备数据大屏</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(9, 25, 46, 0.8);
+      --panel-strong: rgba(10, 34, 63, 0.94);
+      --line: rgba(117, 181, 255, 0.18);
+      --text: #ebf5ff;
+      --muted: #8eadd1;
+      --accent: #5be7ff;
+      --accent-2: #68ffa8;
+      --active: rgba(91, 231, 255, 0.18);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(91, 231, 255, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(104, 255, 168, 0.14), transparent 22%),
+        linear-gradient(135deg, #030812 0%, #07111f 38%, #081a31 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 50%;
+    }
+
+    body::before {
+      top: -18vh;
+      right: -8vw;
+      width: 40vw;
+      height: 40vw;
+      background: radial-gradient(circle, rgba(91, 231, 255, 0.18), transparent 62%);
+      filter: blur(10px);
+    }
+
+    body::after {
+      bottom: -20vh;
+      left: -12vw;
+      width: 42vw;
+      height: 42vw;
+      background: radial-gradient(circle, rgba(104, 255, 168, 0.12), transparent 64%);
+      filter: blur(16px);
+    }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: min(1500px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 32px;
+    }
+
+    .topbar {
+      margin-bottom: 20px;
+      padding: 22px 28px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(7, 20, 37, 0.9), rgba(7, 20, 37, 0.65));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      text-align: center;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: clamp(28px, 3.2vw, 42px);
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .title-wrap p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .statusbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(160px, 1fr));
+      gap: 12px;
+      min-width: min(360px, 100%);
+    }
+
+    .status-card {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(8, 28, 54, 0.75);
+      border: 1px solid rgba(117, 181, 255, 0.18);
+    }
+
+    .status-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .status-card strong {
+      display: block;
+      font-size: 22px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .sidebar {
+      padding: 20px;
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: hidden;
+    }
+
+    .sidebar h2,
+    .content-head h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .sidebar small,
+    .content-head small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      margin-top: 18px;
+      display: grid;
+      gap: 12px;
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+      padding-right: 6px;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(91, 231, 255, 0.45) transparent;
+    }
+
+    .nav::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .nav::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .nav::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(91, 231, 255, 0.35);
+    }
+
+    .nav::-webkit-scrollbar-thumb:hover {
+      background: rgba(91, 231, 255, 0.5);
+    }
+
+    .nav-item {
+      width: 100%;
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      background: rgba(8, 24, 44, 0.72);
+      border-radius: 18px;
+      padding: 16px;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .nav-item:hover {
+      transform: translateY(-2px);
+      border-color: rgba(91, 231, 255, 0.36);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, var(--active), rgba(104, 255, 168, 0.1));
+      border-color: rgba(91, 231, 255, 0.42);
+      box-shadow: inset 0 0 0 1px rgba(91, 231, 255, 0.1);
+    }
+
+    .nav-item strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .nav-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .nav-status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #7f8fa6;
+      box-shadow: 0 0 10px rgba(127, 143, 166, 0.4);
+    }
+
+    .nav-status.online::before {
+      background: #68ffa8;
+      box-shadow: 0 0 12px rgba(104, 255, 168, 0.5);
+    }
+
+    .nav-status.offline::before {
+      background: #ff7f9f;
+      box-shadow: 0 0 12px rgba(255, 127, 159, 0.45);
+    }
+
+    .nav-status.loading::before {
+      background: #ffcf5a;
+      box-shadow: 0 0 12px rgba(255, 207, 90, 0.45);
+    }
+
+    .nav-status.idle::before {
+      background: #7f8fa6;
+      box-shadow: 0 0 10px rgba(127, 143, 166, 0.4);
+    }
+
+    .content {
+      padding: 22px;
+    }
+
+    .content-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .content-title strong {
+      display: block;
+      font-size: clamp(26px, 2.4vw, 34px);
+      line-height: 1.2;
+      margin-top: 8px;
+    }
+
+    .content-meta {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric-card {
+      padding: 16px 14px;
+      border-radius: 18px;
+      background: rgba(7, 24, 44, 0.78);
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      transition: transform 180ms ease, border-color 180ms ease;
+      min-height: 132px;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(91, 231, 255, 0.4);
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      min-height: 34px;
+      line-height: 1.45;
+    }
+
+    .metric-value {
+      margin-top: 10px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+      word-break: break-word;
+    }
+
+    .metric-unit {
+      margin-top: 6px;
+      color: #8fd9ff;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .empty-state {
+      padding: 36px 20px;
+      border-radius: 20px;
+      border: 1px dashed rgba(117, 181, 255, 0.18);
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 1200px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        max-height: none;
+        overflow: visible;
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .nav {
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .screen {
+        width: min(100vw - 18px, 100%);
+        padding-top: 12px;
+      }
+
+      .topbar {
+        padding: 18px;
+      }
+
+      .statusbar,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="topbar">
+      <div class="title-wrap">
+        <h1>设备数据大屏</h1>
+        <p>Spark Machine Monitor</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel sidebar">
+        <h2>设备目录</h2>
+        <small>点击切换设备最新数据</small>
+        <div class="nav" id="deviceNav"></div>
+      </aside>
+
+      <section class="panel content">
+        <div class="content-head">
+          <div class="content-title">
+            <h2>全量字段概览</h2>
+            <strong id="deviceTitle">一号火花机</strong>
+          </div>
+        </div>
+        <div class="content-meta">
+          <div class="statusbar">
+            <div class="status-card">
+              <span>最新上传时间</span>
+              <strong id="uploadTime">加载中</strong>
+            </div>
+            <div class="status-card">
+              <span>设备状态</span>
+              <strong id="systemStatus">正在连接</strong>
+            </div>
+          </div>
+        </div>
+        <div class="metric-grid" id="metricGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_KEY = "YAB39YPxfrdFfUzsXI8nJ2ThWEu9wVId";
+
+    const TEMPLATES = {
+      spark: {
+        timeKey: "N_1",
+        fields: [
+          { key: "N_2", label: "进给速度", unit: "mm/min", type: "number" },
+          { key: "N_3", label: "进给效率", unit: "%", type: "number" },
+          { key: "N_4", label: "效率", unit: "%", type: "number" },
+          { key: "N_5", label: "电流", unit: "A", type: "number" },
+          { key: "N_6", label: "脉宽", unit: "us", type: "number" },
+          { key: "N_7", label: "工时", unit: "s", type: "number" },
+          { key: "N_8", label: "伺服", unit: "档", type: "number" },
+          { key: "N_9", label: "积碳", unit: "档", type: "number" },
+          { key: "N_10", label: "电容", unit: "", type: "number" },
+          { key: "N_11", label: "段数", unit: "段", type: "number" },
+          { key: "N_12", label: "积碳次数", unit: "次", type: "number" },
+          { key: "N_13", label: "放电次数", unit: "次", type: "number" },
+          { key: "N_14", label: "最深深度", unit: "mm", type: "number" },
+          { key: "N_15", label: "高压", unit: "档", type: "number" },
+          { key: "N_16", label: "休止", unit: "us", type: "number" },
+          { key: "N_17", label: "上高", unit: "mm", type: "number" },
+          { key: "N_18", label: "间隙", unit: "档", type: "number" },
+          { key: "N_19", label: "电感0", unit: "", type: "number" },
+          { key: "N_20", label: "极性", unit: "", type: "text" }
+        ]
+      },
+      inject_basic: {
+        timeKey: "N_1",
+        fields: [
+          { key: "N_2", label: "生产总数", unit: "pcs", type: "number" },
+          { key: "N_3", label: "本次产量", unit: "pcs", type: "number" },
+          { key: "N_4", label: "冷却时间", unit: "s", type: "number" },
+          { key: "N_5", label: "油温", unit: "℃", type: "number" },
+          { key: "N_6", label: "流量", unit: "%", type: "number" },
+          { key: "N_7", label: "系统压力", unit: "Bar", type: "number" },
+          { key: "N_8", label: "上模时间", unit: "s", type: "number" }
+        ]
+      },
+      haitian: {
+        timeKey: "Datetime",
+        fields: [
+          { key: "N_1", label: "产量", unit: "模", type: "text" },
+          { key: "N_2", label: "设备状态", unit: "", type: "text" },
+          { key: "N_3", label: "SPC计算设备产量", unit: "", type: "text" },
+          { key: "N_4", label: "输出压力值", unit: "", type: "text" },
+          { key: "N_5", label: "输出速度值", unit: "", type: "text" },
+          { key: "N_6", label: "输出背压值", unit: "", type: "text" },
+          { key: "N_7", label: "实时检测压力", unit: "", type: "text" },
+          { key: "N_8", label: "实时温度1", unit: "℃", type: "text" },
+          { key: "N_9", label: "实时温度2", unit: "℃", type: "text" },
+          { key: "N_10", label: "实时温度3", unit: "℃", type: "text" },
+          { key: "N_11", label: "实时温度4", unit: "℃", type: "text" },
+          { key: "N_12", label: "实时温度5", unit: "℃", type: "text" },
+          { key: "N_13", label: "电机温度", unit: "℃", type: "text" },
+          { key: "N_14", label: "油温", unit: "℃", type: "text" },
+          { key: "N_15", label: "实时模座位置", unit: "", type: "text" },
+          { key: "N_16", label: "实时托模位置", unit: "", type: "text" },
+          { key: "N_17", label: "实时座台位置", unit: "", type: "text" },
+          { key: "N_18", label: "设定温度1", unit: "℃", type: "text" },
+          { key: "N_19", label: "设定温度2", unit: "℃", type: "text" },
+          { key: "N_20", label: "设定温度3", unit: "℃", type: "text" },
+          { key: "N_21", label: "设定温度4", unit: "℃", type: "text" },
+          { key: "N_22", label: "设定温度5", unit: "℃", type: "text" },
+          { key: "N_23", label: "上偏差", unit: "", type: "text" },
+          { key: "N_24", label: "下偏差", unit: "", type: "text" }
+        ]
+      },
+      dequn2: {
+        timeKey: "Datetime",
+        fields: [
+          { key: "N_1", label: "实时温度1", unit: "℃", type: "number" },
+          { key: "N_2", label: "实时温度2", unit: "℃", type: "number" },
+          { key: "N_3", label: "实时温度3", unit: "℃", type: "number" },
+          { key: "N_4", label: "实时温度4", unit: "℃", type: "number" },
+          { key: "N_5", label: "当前压力", unit: "bar", type: "number" },
+          { key: "N_6", label: "当前流量", unit: "%", type: "number" },
+          { key: "N_7", label: "合模位置", unit: "mm", type: "number" },
+          { key: "N_8", label: "周期时间", unit: "", type: "number" },
+          { key: "N_9", label: "螺杆位置", unit: "mm", type: "number" },
+          { key: "N_10", label: "设定温度1", unit: "℃", type: "number" },
+          { key: "N_11", label: "设定温度2", unit: "℃", type: "number" },
+          { key: "N_12", label: "设定温度3", unit: "℃", type: "number" },
+          { key: "N_13", label: "设定温度4", unit: "℃", type: "number" },
+          { key: "N_14", label: "托模次数", unit: "", type: "number" }
+        ]
+      },
+      dequn: {
+        timeKey: "Datetime",
+        fields: [
+          { key: "N_1", label: "设备状态", unit: "", type: "number" },
+          { key: "N_2", label: "温度1", unit: "℃", type: "number" },
+          { key: "N_3", label: "关模一压力", unit: "", type: "number" },
+          { key: "N_4", label: "温度2", unit: "℃", type: "number" },
+          { key: "N_5", label: "温度3", unit: "℃", type: "number" },
+          { key: "N_6", label: "温度4", unit: "℃", type: "number" },
+          { key: "N_7", label: "关模一位置", unit: "", type: "number" },
+          { key: "N_8", label: "关模一速度", unit: "", type: "number" },
+          { key: "N_9", label: "关模二压力", unit: "", type: "number" },
+          { key: "N_10", label: "关模二速度", unit: "", type: "number" },
+          { key: "N_11", label: "关模二位置", unit: "", type: "number" },
+          { key: "N_12", label: "储料一压力", unit: "", type: "number" },
+          { key: "N_13", label: "关模三压力", unit: "", type: "number" },
+          { key: "N_14", label: "储料一速度", unit: "", type: "number" },
+          { key: "N_15", label: "储料二压力", unit: "", type: "number" },
+          { key: "N_16", label: "储料二速度", unit: "", type: "number" },
+          { key: "N_17", label: "储料三压力", unit: "", type: "number" },
+          { key: "N_18", label: "储料三速度", unit: "", type: "number" },
+          { key: "N_19", label: "关模三速度", unit: "", type: "number" },
+          { key: "N_20", label: "储料三位置", unit: "", type: "number" },
+          { key: "N_21", label: "关模低压位置", unit: "", type: "number" },
+          { key: "N_22", label: "关模低压压力", unit: "", type: "number" },
+          { key: "N_23", label: "关模低压速度", unit: "", type: "number" },
+          { key: "N_24", label: "关模高位位置", unit: "", type: "number" },
+          { key: "N_25", label: "关模高位压力", unit: "", type: "number" },
+          { key: "N_26", label: "关模高位速度", unit: "", type: "number" },
+          { key: "N_27", label: "储前冷却", unit: "", type: "number" },
+          { key: "N_28", label: "模具冷却时间", unit: "", type: "number" },
+          { key: "N_29", label: "中子A进压力", unit: "", type: "number" },
+          { key: "N_30", label: "中子A进速度", unit: "", type: "number" },
+          { key: "N_31", label: "中子A进时间", unit: "", type: "number" },
+          { key: "N_32", label: "上模周期", unit: "", type: "number" },
+          { key: "N_33", label: "上模射出时间", unit: "", type: "number" },
+          { key: "N_34", label: "实时周期", unit: "", type: "number" },
+          { key: "N_35", label: "动作计时", unit: "", type: "number" }
+        ]
+      },
+      aiko: {
+        timeKey: "Datetime",
+        fields: [
+          { key: "N_2", label: "设备状态", unit: "", type: "number" },
+          { key: "N_6", label: "温度1", unit: "℃", type: "number" },
+          { key: "N_7", label: "关模一压力", unit: "", type: "number" },
+          { key: "N_8", label: "温度3", unit: "℃", type: "number" },
+          { key: "N_9", label: "温度4", unit: "℃", type: "number" },
+          { key: "N_10", label: "温度2", unit: "℃", type: "number" },
+          { key: "N_11", label: "关模一位置", unit: "", type: "number" },
+          { key: "N_12", label: "关模一速度", unit: "", type: "number" },
+          { key: "N_13", label: "关模二压力", unit: "", type: "number" },
+          { key: "N_14", label: "关模二速度", unit: "", type: "number" },
+          { key: "N_15", label: "关模二位置", unit: "", type: "number" },
+          { key: "N_16", label: "关模三压力", unit: "", type: "number" },
+          { key: "N_17", label: "关模三速度", unit: "", type: "number" },
+          { key: "N_18", label: "储料一速度", unit: "", type: "number" },
+          { key: "N_19", label: "储料二压力", unit: "", type: "number" },
+          { key: "N_20", label: "储料二速度", unit: "", type: "number" },
+          { key: "N_21", label: "储料三压力", unit: "", type: "number" },
+          { key: "N_22", label: "储料三压力", unit: "", type: "number" },
+          { key: "N_23", label: "储料三速度", unit: "", type: "number" },
+          { key: "N_24", label: "储料三位置", unit: "", type: "number" },
+          { key: "N_25", label: "关模低压位置", unit: "", type: "number" },
+          { key: "N_26", label: "关模低压速度", unit: "", type: "number" },
+          { key: "N_27", label: "关模低压压力", unit: "", type: "number" },
+          { key: "N_28", label: "关模高压位置", unit: "", type: "number" },
+          { key: "N_29", label: "关模高位压力", unit: "", type: "number" },
+          { key: "N_30", label: "关模高位速度", unit: "", type: "number" },
+          { key: "N_31", label: "储前冷却", unit: "", type: "number" },
+          { key: "N_32", label: "模具冷却时间", unit: "", type: "number" },
+          { key: "N_33", label: "中子A进压力", unit: "", type: "number" },
+          { key: "N_34", label: "中子A进速度", unit: "", type: "number" },
+          { key: "N_35", label: "中子A进时间", unit: "", type: "number" },
+          { key: "N_36", label: "上模周期", unit: "", type: "number" },
+          { key: "N_37", label: "上模射出时间", unit: "", type: "number" },
+          { key: "N_38", label: "实时周期", unit: "", type: "number" },
+          { key: "N_39", label: "动作计时", unit: "", type: "number" }
+        ]
+      },
+      aiko2: {
+        timeKey: "Datetime",
+        fields: [
+          { key: "N_1", label: "设备状态", unit: "", type: "number" },
+          { key: "N_2", label: "温度1", unit: "℃", type: "number" },
+          { key: "N_3", label: "关模一压力", unit: "", type: "number" },
+          { key: "N_4", label: "温度2", unit: "℃", type: "number" },
+          { key: "N_5", label: "温度3", unit: "℃", type: "number" },
+          { key: "N_6", label: "温度4", unit: "℃", type: "number" },
+          { key: "N_7", label: "关模一位置", unit: "", type: "number" },
+          { key: "N_8", label: "关模一速度", unit: "", type: "number" },
+          { key: "N_9", label: "关模二压力", unit: "", type: "number" },
+          { key: "N_10", label: "关模二速度", unit: "", type: "number" },
+          { key: "N_11", label: "关模二位置", unit: "", type: "number" },
+          { key: "N_12", label: "储料一压力", unit: "", type: "number" },
+          { key: "N_13", label: "关模三压力", unit: "", type: "number" },
+          { key: "N_14", label: "储料一速度", unit: "", type: "number" },
+          { key: "N_15", label: "储料二压力", unit: "", type: "number" },
+          { key: "N_16", label: "储料二速度", unit: "", type: "number" },
+          { key: "N_17", label: "储料三压力", unit: "", type: "number" },
+          { key: "N_18", label: "储料三速度", unit: "", type: "number" },
+          { key: "N_19", label: "关模三速度", unit: "", type: "number" },
+          { key: "N_20", label: "储料三位置", unit: "", type: "number" },
+          { key: "N_21", label: "关模低压位置", unit: "", type: "number" },
+          { key: "N_22", label: "关模低压压力", unit: "", type: "number" },
+          { key: "N_23", label: "关模低压速度", unit: "", type: "number" },
+          { key: "N_24", label: "关模高位位置", unit: "", type: "number" },
+          { key: "N_25", label: "关模高位压力", unit: "", type: "number" },
+          { key: "N_26", label: "关模高位速度", unit: "", type: "number" },
+          { key: "N_27", label: "储前冷却", unit: "", type: "number" },
+          { key: "N_28", label: "模具冷却时间", unit: "", type: "number" },
+          { key: "N_29", label: "中子A进压力", unit: "", type: "number" },
+          { key: "N_30", label: "中子A进速度", unit: "", type: "number" },
+          { key: "N_31", label: "中子A进时间", unit: "", type: "number" },
+          { key: "N_32", label: "上模周期", unit: "", type: "number" },
+          { key: "N_33", label: "上模射出时间", unit: "", type: "number" },
+          { key: "N_34", label: "实时周期", unit: "", type: "number" },
+          { key: "N_35", label: "动作计时", unit: "", type: "number" }
+        ]
+      }
+    };
+
+    const DEVICES = [
+      { id: "machine-1", name: "一号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5c9cbabc5e4d4f86d3d1c3cf/data", template: "spark" },
+      { id: "machine-2", name: "二号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/50b309806794fa02d3af8a1a/data", template: "spark" },
+      { id: "machine-3", name: "三号火花机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5e5855c4b42b30b5505d6578/data", template: "spark" },
+      { id: "haitian", name: "海天注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5cbcff39f5080260d3a80a46/data", template: "haitian" },
+      { id: "machine-7", name: "七号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/51024f92bc2d2d5afccf6d3c/data", template: "inject_basic" },
+      { id: "machine-12", name: "十二号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5099153117a52fee3759a8d4/data", template: "inject_basic" },
+      { id: "machine-31", name: "三十一号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/513bfc35a8a9c4919b97edba/data", template: "inject_basic" },
+      { id: "machine-6", name: "六号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5216dd1d5449b00a1274c954/data", template: "inject_basic" },
+      { id: "machine-5", name: "五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5301ebf52f344c2ec34a95ca/data", template: "inject_basic" },
+      { id: "aiko", name: "爱科注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5306c01019f0f69171b9c007/data", template: "aiko" },
+      { id: "machine-17", name: "十七号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/54ce6e35d17cef3f91f8768e/data", template: "inject_basic" },
+      { id: "machine-20", name: "二十号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/54ce6e35d17cef3f91f8768e/data", template: "inject_basic" },
+      { id: "machine-25", name: "二十五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/563bb56a2d4158d7960b7e83/data", template: "inject_basic" },
+      { id: "dequn", name: "德群注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5641cfccae728b3afbe43524/data", template: "dequn" },
+      { id: "machine-15", name: "十五号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5668bffae7eef7d66a8ecde4/data", template: "inject_basic" },
+      { id: "machine-23", name: "二十三号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5668bffae7eef7d66a8ecde4/data", template: "inject_basic" },
+      { id: "machine-16", name: "十六号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5916adfa564b615521117dfa/data", template: "inject_basic" },
+      { id: "aiko-2", name: "爱科注塑机（2）", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5ac84dea13320e21e1da8d59/data", template: "aiko2" },
+      { id: "machine-8", name: "八号注塑机", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5b9eec3f2799ed35577c71d8/data", template: "inject_basic" },
+      { id: "dequn-2", name: "德群注塑机（2）", apiUrl: "https://shurui.online-office.net/openapi/v1/app/59cd945d66ba5f708b0baf46/entry/5dc0b3b73ac71f86ef5e4335/data", template: "dequn2" }
+    ];
+
+    const state = {
+      activeDeviceId: DEVICES[0].id,
+      cache: new Map(),
+      deviceStatus: new Map()
+    };
+
+    const el = {
+      uploadTime: document.getElementById("uploadTime"),
+      systemStatus: document.getElementById("systemStatus"),
+      deviceNav: document.getElementById("deviceNav"),
+      deviceTitle: document.getElementById("deviceTitle"),
+      metricGrid: document.getElementById("metricGrid")
+    };
+
+    function formatValue(value, config) {
+      if (value === null || value === undefined || value === "") return "--";
+      if (config.type === "number") {
+        const num = Number(value);
+        if (Number.isNaN(num)) return String(value);
+        return Math.abs(num) >= 1000
+          ? num.toLocaleString("zh-CN", { maximumFractionDigits: 2 })
+          : num.toLocaleString("zh-CN", { maximumFractionDigits: 3 });
+      }
+      return String(value);
+    }
+
+    function formatTime(value) {
+      if (!value) return "--";
+      const date = new Date(String(value).replace(/-/g, "/"));
+      if (Number.isNaN(date.getTime())) return String(value);
+      const parts = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+      ];
+      const time = [
+        String(date.getHours()).padStart(2, "0"),
+        String(date.getMinutes()).padStart(2, "0"),
+        String(date.getSeconds()).padStart(2, "0")
+      ];
+      return parts.join("-") + " " + time.join(":");
+    }
+
+    function parseTime(value) {
+      if (!value) return null;
+      const date = new Date(String(value).replace(/-/g, "/"));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function getStatusFromRecord(device, record) {
+      const template = TEMPLATES[device.template];
+      const uploadTime = parseTime(record?.[template.timeKey]);
+      if (!uploadTime) {
+        return { text: "离线", className: "offline" };
+      }
+
+      const diffMs = Date.now() - uploadTime.getTime();
+      const isOnline = diffMs <= 30 * 60 * 1000;
+      return {
+        text: isOnline ? "在线" : "离线",
+        className: isOnline ? "online" : "offline"
+      };
+    }
+
+    function renderNav() {
+      el.deviceNav.innerHTML = DEVICES.map(device => `
+        <button class="nav-item ${device.id === state.activeDeviceId ? "active" : ""}" data-device-id="${device.id}" type="button">
+          <strong>${device.name}</strong>
+          <span class="nav-status ${state.deviceStatus.get(device.id)?.className || "idle"}">${state.deviceStatus.get(device.id)?.text || "待加载"}</span>
+        </button>
+      `).join("");
+
+      el.deviceNav.querySelectorAll(".nav-item").forEach(button => {
+        button.addEventListener("click", () => {
+          const { deviceId } = button.dataset;
+          if (deviceId === state.activeDeviceId) return;
+          state.activeDeviceId = deviceId;
+          renderNav();
+          loadActiveDevice();
+        });
+      });
+    }
+
+    function getFieldConfig(device) {
+      return TEMPLATES[device.template]?.fields || [];
+    }
+
+    function renderMetrics(device, record) {
+      const fields = getFieldConfig(device);
+      el.metricGrid.innerHTML = fields.map(item => `
+        <article class="metric-card">
+          <div class="metric-label">${item.label}</div>
+          <div class="metric-value">${formatValue(record[item.key], item)}</div>
+          <div class="metric-unit">${item.unit || ""}</div>
+        </article>
+      `).join("");
+    }
+
+    function renderEmpty(message) {
+      el.metricGrid.innerHTML = `<div class="empty-state">${message}</div>`;
+    }
+
+    async function fetchLatestRecord(device) {
+      const template = TEMPLATES[device.template];
+      const body = {
+        limit: 1,
+        skip: 0,
+        sort: {
+          [template.timeKey]: "desc"
+        }
+      };
+
+      const attempts = [
+        { headers: { "Content-Type": "application/json", "x-api-key": API_KEY } },
+        { headers: { "Content-Type": "application/json", "api-key": API_KEY } },
+        { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` } }
+      ];
+
+      let lastError = null;
+
+      for (const attempt of attempts) {
+        try {
+          const response = await fetch(device.apiUrl, {
+            method: "POST",
+            headers: attempt.headers,
+            body: JSON.stringify(body)
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const result = await response.json();
+          const list = Array.isArray(result.data) ? result.data : [];
+          if (!list.length) {
+            throw new Error("接口返回为空");
+          }
+
+          return list[0];
+        } catch (error) {
+          lastError = error.message;
+        }
+      }
+
+      throw new Error(lastError || "请求失败");
+    }
+
+    async function loadActiveDevice() {
+      const device = DEVICES.find(item => item.id === state.activeDeviceId);
+      if (!device) return;
+
+      el.deviceTitle.textContent = device.name;
+      el.systemStatus.textContent = "刷新中";
+      el.systemStatus.style.color = "#ffcf5a";
+      el.uploadTime.textContent = "加载中";
+      state.deviceStatus.set(device.id, { text: "加载中", className: "loading" });
+      renderNav();
+      renderEmpty("正在加载设备最新数据...");
+
+      try {
+        const record = await fetchLatestRecord(device);
+        state.cache.set(device.id, record);
+        state.deviceStatus.set(device.id, getStatusFromRecord(device, record));
+        renderMetrics(device, record);
+        renderNav();
+        el.uploadTime.textContent = formatTime(record[TEMPLATES[device.template].timeKey]);
+        el.systemStatus.textContent = state.deviceStatus.get(device.id).text;
+        el.systemStatus.style.color = state.deviceStatus.get(device.id).className === "online" ? "#68ffa8" : "#ff88a7";
+      } catch (error) {
+        renderEmpty(`${device.name} 数据加载失败，请检查接口或鉴权配置。`);
+        el.uploadTime.textContent = "--";
+        state.deviceStatus.set(device.id, { text: "离线", className: "offline" });
+        renderNav();
+        el.systemStatus.textContent = "离线";
+        el.systemStatus.style.color = "#ff88a7";
+        console.error(`${device.name} 数据加载失败:`, error.message);
+      }
+    }
+
+    renderNav();
+    loadActiveDevice();
+  </script>
+</body>
+</html>
