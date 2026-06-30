@@ -14,6 +14,8 @@
       --muted: #8eadd1;
       --accent: #5be7ff;
       --accent-2: #68ffa8;
+      --accent-3: #ffd36a;
+      --panel-edge: rgba(255, 255, 255, 0.05);
       --active: rgba(91, 231, 255, 0.18);
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
     }
@@ -70,24 +72,54 @@
     }
 
     .topbar {
+      position: relative;
+      overflow: hidden;
       margin-bottom: 20px;
-      padding: 22px 28px;
+      padding: 26px 28px 24px;
       border: 1px solid var(--line);
-      border-radius: 24px;
-      background: linear-gradient(180deg, rgba(7, 20, 37, 0.9), rgba(7, 20, 37, 0.65));
+      border-radius: 30px;
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.08), transparent 30%),
+        linear-gradient(180deg, rgba(7, 20, 37, 0.95), rgba(7, 20, 37, 0.72));
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
       text-align: center;
     }
 
+    .topbar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent, rgba(91, 231, 255, 0.08), transparent),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 45%);
+      pointer-events: none;
+    }
+
+    .topbar::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -26px;
+      transform: translateX(-50%);
+      width: 240px;
+      height: 70px;
+      background: radial-gradient(circle, rgba(91, 231, 255, 0.28), transparent 72%);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
     .title-wrap h1 {
+      position: relative;
       margin: 0;
       font-size: clamp(28px, 3.2vw, 42px);
-      letter-spacing: 0.08em;
+      letter-spacing: 0.16em;
       font-weight: 700;
+      text-shadow: 0 0 22px rgba(91, 231, 255, 0.18);
     }
 
     .title-wrap p {
+      position: relative;
       margin: 8px 0 0;
       color: var(--muted);
       font-size: 14px;
@@ -133,11 +165,32 @@
     }
 
     .panel {
+      position: relative;
+      overflow: hidden;
       border-radius: 24px;
       border: 1px solid var(--line);
       background: linear-gradient(180deg, var(--panel-strong), var(--panel));
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%),
+        linear-gradient(135deg, rgba(91, 231, 255, 0.06), transparent 24%);
+      pointer-events: none;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      border: 1px solid var(--panel-edge);
+      pointer-events: none;
     }
 
     .sidebar {
@@ -150,6 +203,7 @@
 
     .sidebar h2,
     .content-head h2 {
+      position: relative;
       margin: 0;
       font-size: 18px;
       letter-spacing: 0.08em;
@@ -192,29 +246,51 @@
     }
 
     .nav-item {
+      position: relative;
+      overflow: hidden;
       width: 100%;
       border: 1px solid rgba(117, 181, 255, 0.14);
-      background: rgba(8, 24, 44, 0.72);
-      border-radius: 18px;
-      padding: 16px;
+      background:
+        linear-gradient(180deg, rgba(14, 36, 64, 0.9), rgba(8, 24, 44, 0.78));
+      border-radius: 20px;
+      padding: 18px 16px;
       color: var(--text);
       text-align: left;
       cursor: pointer;
-      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 12px 24px rgba(0, 0, 0, 0.16);
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    }
+
+    .nav-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(91, 231, 255, 0.08), transparent 36%);
+      pointer-events: none;
     }
 
     .nav-item:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px);
       border-color: rgba(91, 231, 255, 0.36);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 18px 30px rgba(0, 0, 0, 0.22);
     }
 
     .nav-item.active {
-      background: linear-gradient(135deg, var(--active), rgba(104, 255, 168, 0.1));
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.24), rgba(104, 255, 168, 0.14)),
+        linear-gradient(180deg, rgba(13, 41, 68, 0.98), rgba(10, 34, 58, 0.9));
       border-color: rgba(91, 231, 255, 0.42);
-      box-shadow: inset 0 0 0 1px rgba(91, 231, 255, 0.1);
+      box-shadow:
+        inset 0 0 0 1px rgba(91, 231, 255, 0.12),
+        0 18px 32px rgba(5, 15, 31, 0.28);
     }
 
     .nav-item strong {
+      position: relative;
       display: block;
       font-size: 18px;
       font-weight: 700;
@@ -222,11 +298,16 @@
     }
 
     .nav-status {
+      position: relative;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       font-size: 12px;
       color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .nav-status::before {
@@ -259,7 +340,7 @@
     }
 
     .content {
-      padding: 22px;
+      padding: 24px;
     }
 
     .content-head {
@@ -267,43 +348,72 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
 
     .content-title strong {
       display: block;
       font-size: clamp(26px, 2.4vw, 34px);
       line-height: 1.2;
-      margin-top: 8px;
+      margin-top: 10px;
+      text-shadow: 0 0 18px rgba(91, 231, 255, 0.12);
     }
 
     .content-meta {
+      position: relative;
       display: grid;
       gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
+      padding: 16px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.07), transparent 45%),
+        rgba(7, 24, 44, 0.5);
+      border: 1px solid rgba(117, 181, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
+      gap: 14px;
     }
 
     .metric-card {
-      padding: 16px 14px;
-      border-radius: 18px;
-      background: rgba(7, 24, 44, 0.78);
+      position: relative;
+      overflow: hidden;
+      padding: 18px 16px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(12, 34, 61, 0.95), rgba(7, 24, 44, 0.82));
       border: 1px solid rgba(117, 181, 255, 0.14);
-      transition: transform 180ms ease, border-color 180ms ease;
-      min-height: 132px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 14px 28px rgba(0, 0, 0, 0.16);
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      min-height: 144px;
+    }
+
+    .metric-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(91, 231, 255, 0.16), transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%);
+      pointer-events: none;
     }
 
     .metric-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-4px);
       border-color: rgba(91, 231, 255, 0.4);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 20px 34px rgba(0, 0, 0, 0.22);
     }
 
     .metric-label {
+      position: relative;
       color: var(--muted);
       font-size: 12px;
       min-height: 34px;
@@ -311,24 +421,30 @@
     }
 
     .metric-value {
+      position: relative;
       margin-top: 10px;
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
       color: #ffffff;
       word-break: break-word;
+      text-shadow: 0 0 20px rgba(91, 231, 255, 0.08);
     }
 
     .metric-unit {
+      position: relative;
       margin-top: 6px;
-      color: #8fd9ff;
+      color: #9edfff;
       font-size: 12px;
       letter-spacing: 0.04em;
     }
 
     .empty-state {
-      padding: 36px 20px;
-      border-radius: 20px;
+      padding: 42px 20px;
+      border-radius: 24px;
       border: 1px dashed rgba(117, 181, 255, 0.18);
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.06), transparent 38%),
+        rgba(7, 24, 44, 0.45);
       color: var(--muted);
       text-align: center;
       line-height: 1.8;
@@ -510,41 +626,21 @@
       dequn: {
         timeKey: "Datetime",
         fields: [
-          { key: "N_1", label: "设备状态", unit: "", type: "number" },
-          { key: "N_2", label: "温度1", unit: "℃", type: "number" },
-          { key: "N_3", label: "关模一压力", unit: "", type: "number" },
-          { key: "N_4", label: "温度2", unit: "℃", type: "number" },
-          { key: "N_5", label: "温度3", unit: "℃", type: "number" },
-          { key: "N_6", label: "温度4", unit: "℃", type: "number" },
-          { key: "N_7", label: "关模一位置", unit: "", type: "number" },
-          { key: "N_8", label: "关模一速度", unit: "", type: "number" },
-          { key: "N_9", label: "关模二压力", unit: "", type: "number" },
-          { key: "N_10", label: "关模二速度", unit: "", type: "number" },
-          { key: "N_11", label: "关模二位置", unit: "", type: "number" },
-          { key: "N_12", label: "储料一压力", unit: "", type: "number" },
-          { key: "N_13", label: "关模三压力", unit: "", type: "number" },
-          { key: "N_14", label: "储料一速度", unit: "", type: "number" },
-          { key: "N_15", label: "储料二压力", unit: "", type: "number" },
-          { key: "N_16", label: "储料二速度", unit: "", type: "number" },
-          { key: "N_17", label: "储料三压力", unit: "", type: "number" },
-          { key: "N_18", label: "储料三速度", unit: "", type: "number" },
-          { key: "N_19", label: "关模三速度", unit: "", type: "number" },
-          { key: "N_20", label: "储料三位置", unit: "", type: "number" },
-          { key: "N_21", label: "关模低压位置", unit: "", type: "number" },
-          { key: "N_22", label: "关模低压压力", unit: "", type: "number" },
-          { key: "N_23", label: "关模低压速度", unit: "", type: "number" },
-          { key: "N_24", label: "关模高位位置", unit: "", type: "number" },
-          { key: "N_25", label: "关模高位压力", unit: "", type: "number" },
-          { key: "N_26", label: "关模高位速度", unit: "", type: "number" },
-          { key: "N_27", label: "储前冷却", unit: "", type: "number" },
-          { key: "N_28", label: "模具冷却时间", unit: "", type: "number" },
-          { key: "N_29", label: "中子A进压力", unit: "", type: "number" },
-          { key: "N_30", label: "中子A进速度", unit: "", type: "number" },
-          { key: "N_31", label: "中子A进时间", unit: "", type: "number" },
-          { key: "N_32", label: "上模周期", unit: "", type: "number" },
-          { key: "N_33", label: "上模射出时间", unit: "", type: "number" },
-          { key: "N_34", label: "实时周期", unit: "", type: "number" },
-          { key: "N_35", label: "动作计时", unit: "", type: "number" }
+          { key: "N_2", label: "实时温度1", unit: "℃", type: "number" },
+          { key: "N_3", label: "实时温度2", unit: "℃", type: "number" },
+          { key: "N_4", label: "实时温度3", unit: "℃", type: "number" },
+          { key: "N_5", label: "实时温度4", unit: "℃", type: "number" },
+          { key: "N_11", label: "设定温度1", unit: "℃", type: "number" },
+          { key: "N_12", label: "设定温度2", unit: "℃", type: "number" },
+          { key: "N_13", label: "设定温度3", unit: "℃", type: "number" },
+          { key: "N_6", label: "当前压力", unit: "bar", type: "number" },
+          { key: "N_14", label: "设定温度4", unit: "℃", type: "number" },
+          { key: "N_9", label: "合模位置", unit: "mm", type: "text" },
+          { key: "N_10", label: "螺杆位置", unit: "mm", type: "text" },
+          { key: "N_15", label: "托模次数", unit: "", type: "number" },
+          { key: "N_8", label: "产量", unit: "模", type: "text" },
+          { key: "N_7", label: "当前流量", unit: "%", type: "number" },
+          { key: "N_1", label: "设备状态", unit: "", type: "number" }
         ]
       },
       aiko: {
