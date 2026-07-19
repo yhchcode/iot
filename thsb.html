@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>泰豪三波设备数据大屏</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(9, 25, 46, 0.8);
+      --panel-strong: rgba(10, 34, 63, 0.94);
+      --line: rgba(117, 181, 255, 0.18);
+      --text: #ebf5ff;
+      --muted: #8eadd1;
+      --accent: #5be7ff;
+      --accent-2: #68ffa8;
+      --panel-edge: rgba(255, 255, 255, 0.05);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(91, 231, 255, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(104, 255, 168, 0.14), transparent 22%),
+        linear-gradient(135deg, #030812 0%, #07111f 38%, #081a31 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      border-radius: 50%;
+    }
+
+    body::before {
+      top: -18vh;
+      right: -8vw;
+      width: 40vw;
+      height: 40vw;
+      background: radial-gradient(circle, rgba(91, 231, 255, 0.18), transparent 62%);
+      filter: blur(10px);
+    }
+
+    body::after {
+      bottom: -20vh;
+      left: -12vw;
+      width: 42vw;
+      height: 42vw;
+      background: radial-gradient(circle, rgba(104, 255, 168, 0.12), transparent 64%);
+      filter: blur(16px);
+    }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: min(1500px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 32px;
+    }
+
+    .topbar {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+      padding: 26px 28px 24px;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.08), transparent 30%),
+        linear-gradient(180deg, rgba(7, 20, 37, 0.95), rgba(7, 20, 37, 0.72));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      text-align: center;
+    }
+
+    .topbar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent, rgba(91, 231, 255, 0.08), transparent),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 45%);
+      pointer-events: none;
+    }
+
+    .topbar::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -26px;
+      transform: translateX(-50%);
+      width: 240px;
+      height: 70px;
+      background: radial-gradient(circle, rgba(91, 231, 255, 0.28), transparent 72%);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    .title-wrap h1 {
+      position: relative;
+      margin: 0;
+      font-size: clamp(28px, 3.2vw, 42px);
+      letter-spacing: 0.16em;
+      font-weight: 700;
+      text-shadow: 0 0 22px rgba(91, 231, 255, 0.18);
+    }
+
+    .title-wrap p {
+      position: relative;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%),
+        linear-gradient(135deg, rgba(91, 231, 255, 0.06), transparent 24%);
+      pointer-events: none;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      border: 1px solid var(--panel-edge);
+      pointer-events: none;
+    }
+
+    .sidebar {
+      padding: 20px;
+      position: sticky;
+      top: 24px;
+      max-height: calc(100vh - 48px);
+      overflow: hidden;
+    }
+
+    .sidebar h2,
+    .content-head h2 {
+      position: relative;
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .sidebar small,
+    .content-head small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      margin-top: 18px;
+      display: grid;
+      gap: 12px;
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+      padding-right: 6px;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(91, 231, 255, 0.45) transparent;
+    }
+
+    .nav::-webkit-scrollbar { width: 8px; }
+    .nav::-webkit-scrollbar-track { background: transparent; }
+    .nav::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(91, 231, 255, 0.35);
+    }
+
+    .nav-item {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      background:
+        linear-gradient(180deg, rgba(14, 36, 64, 0.9), rgba(8, 24, 44, 0.78));
+      border-radius: 20px;
+      padding: 18px 16px;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 12px 24px rgba(0, 0, 0, 0.16);
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    }
+
+    .nav-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(91, 231, 255, 0.08), transparent 36%);
+      pointer-events: none;
+    }
+
+    .nav-item:hover {
+      transform: translateY(-3px);
+      border-color: rgba(91, 231, 255, 0.36);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 18px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .nav-item.active {
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.24), rgba(104, 255, 168, 0.14)),
+        linear-gradient(180deg, rgba(13, 41, 68, 0.98), rgba(10, 34, 58, 0.9));
+      border-color: rgba(91, 231, 255, 0.42);
+      box-shadow:
+        inset 0 0 0 1px rgba(91, 231, 255, 0.12),
+        0 18px 32px rgba(5, 15, 31, 0.28);
+    }
+
+    .nav-item strong {
+      position: relative;
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .nav-status {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #7f8fa6;
+      box-shadow: 0 0 10px rgba(127, 143, 166, 0.4);
+    }
+
+    .nav-status.online::before {
+      background: #68ffa8;
+      box-shadow: 0 0 12px rgba(104, 255, 168, 0.5);
+    }
+
+    .nav-status.offline::before {
+      background: #ff7f9f;
+      box-shadow: 0 0 12px rgba(255, 127, 159, 0.45);
+    }
+
+    .nav-status.loading::before {
+      background: #ffcf5a;
+      box-shadow: 0 0 12px rgba(255, 207, 90, 0.45);
+    }
+
+    .nav-status.idle::before {
+      background: #7f8fa6;
+      box-shadow: 0 0 10px rgba(127, 143, 166, 0.4);
+    }
+
+    .content {
+      padding: 24px;
+    }
+
+    .content-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .content-title strong {
+      display: block;
+      font-size: clamp(26px, 2.4vw, 34px);
+      line-height: 1.2;
+      margin-top: 10px;
+      text-shadow: 0 0 18px rgba(91, 231, 255, 0.12);
+    }
+
+    .content-meta {
+      position: relative;
+      display: grid;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.07), transparent 45%),
+        rgba(7, 24, 44, 0.5);
+      border: 1px solid rgba(117, 181, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .statusbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(160px, 1fr));
+      gap: 12px;
+      min-width: min(360px, 100%);
+    }
+
+    .status-card {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(8, 28, 54, 0.75);
+      border: 1px solid rgba(117, 181, 255, 0.18);
+    }
+
+    .status-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .status-card strong {
+      display: block;
+      font-size: 22px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .detail-view {
+      display: grid;
+      gap: 18px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-section {
+      display: grid;
+      gap: 8px;
+    }
+
+    .summary-section h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: #9edfff;
+    }
+
+    .subtable-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .subtable-panel {
+      position: relative;
+      overflow: hidden;
+      padding: 12px;
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(12, 34, 61, 0.95), rgba(7, 24, 44, 0.82));
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 14px 28px rgba(0, 0, 0, 0.16);
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    .subtable-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(91, 231, 255, 0.14), transparent 32%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%);
+      pointer-events: none;
+    }
+
+    .subtable-head {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .subtable-head h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    .subtable-head span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .subtable-wrap {
+      position: relative;
+      overflow-x: auto;
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 2px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(91, 231, 255, 0.35) transparent;
+    }
+
+    .subtable-wrap::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .subtable-wrap::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .subtable-wrap::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(91, 231, 255, 0.35);
+    }
+
+    .subtable-wrap::-webkit-scrollbar-thumb:hover {
+      background: rgba(91, 231, 255, 0.5);
+    }
+
+    .subtable {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 420px;
+    }
+
+    .subtable.vertical {
+      min-width: 100%;
+    }
+
+    .subtable-wrap.vertical-wrap {
+      max-height: 248px;
+    }
+
+    .subtable-wrap.horizontal-wrap {
+      max-height: 248px;
+    }
+
+    .subtable th,
+    .subtable td {
+      padding: 6px 9px;
+      border-bottom: 1px solid rgba(117, 181, 255, 0.12);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .subtable th {
+      color: #9edfff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      background: rgba(255, 255, 255, 0.03);
+      white-space: nowrap;
+    }
+
+    .subtable td {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .subtable tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .metric-card {
+      position: relative;
+      overflow: hidden;
+      padding: 18px 16px;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(12, 34, 61, 0.95), rgba(7, 24, 44, 0.82));
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 14px 28px rgba(0, 0, 0, 0.16);
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      min-height: 144px;
+    }
+
+    .summary-grid .metric-card {
+      min-height: 98px;
+      padding: 12px;
+    }
+
+    .metric-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(91, 231, 255, 0.16), transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%);
+      pointer-events: none;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(91, 231, 255, 0.4);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 20px 34px rgba(0, 0, 0, 0.22);
+    }
+
+    .metric-label {
+      position: relative;
+      color: var(--muted);
+      font-size: 12px;
+      min-height: 34px;
+      line-height: 1.45;
+    }
+
+    .metric-value {
+      position: relative;
+      margin-top: 10px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      word-break: break-word;
+      text-shadow: 0 0 20px rgba(91, 231, 255, 0.08);
+    }
+
+    .metric-value.compact {
+      font-size: 16px;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .metric-unit {
+      position: relative;
+      margin-top: 6px;
+      color: #9edfff;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .empty-state {
+      padding: 42px 20px;
+      border-radius: 24px;
+      border: 1px dashed rgba(117, 181, 255, 0.18);
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.06), transparent 38%),
+        rgba(7, 24, 44, 0.45);
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.8;
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 1200px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; max-height: none; overflow: visible; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .summary-grid,
+      .subtable-grid { grid-template-columns: 1fr; }
+      .nav { max-height: none; overflow: visible; padding-right: 0; }
+    }
+
+    @media (max-width: 720px) {
+      .screen { width: min(100vw - 18px, 100%); padding-top: 12px; }
+      .topbar { padding: 18px; }
+      .statusbar, .metric-grid, .summary-grid, .subtable-grid { grid-template-columns: 1fr; }
+      .content-head { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="topbar">
+      <div class="title-wrap">
+        <h1>泰豪三波设备数据大屏</h1>
+        <p>Thai-Summit Equipment Monitor</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel sidebar">
+        <h2>设备目录</h2>
+        <small>点击切换设备最新数据</small>
+        <div class="nav" id="deviceNav"></div>
+      </aside>
+
+      <section class="panel content">
+        <div class="content-head">
+          <div class="content-title">
+            <h2>全量字段概览</h2>
+            <strong id="deviceTitle">动平衡机</strong>
+          </div>
+        </div>
+        <div class="content-meta">
+          <div class="statusbar">
+            <div class="status-card">
+              <span>最新上传时间</span>
+              <strong id="uploadTime">加载中</strong>
+            </div>
+            <div class="status-card">
+              <span>设备状态</span>
+              <strong id="systemStatus">正在连接</strong>
+            </div>
+          </div>
+        </div>
+        <div class="metric-grid" id="metricGrid"></div>
+        <div class="detail-view" id="detailView" hidden></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_KEY = "wnxn7dcpVyikb9jzWpfIj7Q3NmY55afX";
+    const REFRESH_INTERVAL = 60 * 1000;
+
+    const DEVICES = [
+      {
+        id: "dynamic-balancer",
+        name: "动平衡机",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/54fc2f7fef5dba9607e6e67c/entry/54d9a908904eb97c6366500d/data",
+        template: "balancer"
+      },
+      {
+        id: "laser-cutter",
+        name: "激光切割机",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/54fc2f7fef5dba9607e6e67c/entry/5935c7ec28c50e93cb6f7bc4/data",
+        template: "laser"
+      },
+      {
+        id: "electrical-test-station",
+        name: "测电站",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/54fc2f7fef5dba9607e6e67c/entry/55a440d9ba2708c38a5b64d4/data",
+        template: "test_station"
+      }
+    ];
+
+    const TEMPLATES = {
+      balancer: {
+        timeKey: "_widget_1784269708143",
+        fields: [
+          { key: "_widget_1784269708224", label: "左角度", unit: "°", type: "number" },
+          { key: "_widget_1784269708245", label: "左量值", unit: "g", type: "number" },
+          { key: "_widget_1784269708266", label: "右角度", unit: "°", type: "number" },
+          { key: "_widget_1784269708287", label: "右量值", unit: "g", type: "number" },
+          { key: "_widget_1784269708308", label: "转速", unit: "r/min", type: "number" }
+        ]
+      },
+      laser: {
+        timeKey: "N_1",
+        fields: [
+          { key: "N_2", label: "切割速度", unit: "m/min", type: "number" },
+          { key: "N_3", label: "上抬高度", unit: "mm", type: "number" },
+          { key: "N_4", label: "喷嘴高度", unit: "mm", type: "number" },
+          { key: "N_5", label: "气体种类", unit: "", type: "text" },
+          { key: "N_6", label: "切割气压", unit: "BAR", type: "number" },
+          { key: "N_7", label: "峰值功率", unit: "w", type: "number" },
+          { key: "N_8", label: "Pwm占空比", unit: "%", type: "number" },
+          { key: "N_9", label: "频率", unit: "Hz", type: "number" },
+          { key: "N_10", label: "加工计时", unit: "", type: "number" },
+          { key: "N_11", label: "加工计件", unit: "", type: "number" },
+          { key: "N_12", label: "计划数量", unit: "", type: "number" }
+        ]
+      },
+      test_station: {
+        timeKey: "_widget_1780623299314",
+        mode: "subtables",
+        fields: [
+          { key: "_widget_1784252071051", label: "生产工单", unit: "", type: "text" },
+          { key: "_widget_1784252071068", label: "产品名称", unit: "", type: "text" },
+          { key: "_widget_1784252071133", label: "规格型号", unit: "", type: "text" },
+          { key: "_widget_1784259585299", label: "检测序号", unit: "", type: "text" },
+          { key: "_widget_1784249468214", label: "稳态负载", unit: "", type: "number" },
+          { key: "_widget_1784249468436", label: "稳态电流 Iu", unit: "A", type: "number" },
+          { key: "_widget_1784249468484", label: "稳态电流 Iv", unit: "A", type: "number" },
+          { key: "_widget_1784249468534", label: "稳态电流 Iw", unit: "A", type: "number" },
+          { key: "_widget_1784249468586", label: "稳态功率 P1", unit: "KW", type: "number" },
+          { key: "_widget_1784249468640", label: "稳态功率 P2", unit: "KW", type: "number" },
+          { key: "_widget_1784249468696", label: "稳态功率 P3", unit: "KW", type: "number" },
+          { key: "_widget_1784249468754", label: "稳态功率 P", unit: "KW", type: "number" },
+          { key: "_widget_1784249468833", label: "稳态电压 Uuv", unit: "V", type: "number" },
+          { key: "_widget_1784249468935", label: "稳态电压 Uvw", unit: "V", type: "number" },
+          { key: "_widget_1784249469039", label: "稳态电压 UBmax", unit: "V", type: "number" },
+          { key: "_widget_1784249469145", label: "稳态电压 UBmin", unit: "V", type: "number" },
+          { key: "_widget_1784249469213", label: "稳态频率 f", unit: "Hz", type: "number" },
+          { key: "_widget_1784249469433", label: "稳态频率 fBmax", unit: "Hz", type: "number" },
+          { key: "_widget_1784249469342", label: "稳态频率 fBmin", unit: "Hz", type: "number" },
+          { key: "_widget_1784249471558", label: "稳态电压调整率", unit: "", type: "text" },
+          { key: "_widget_1784249471630", label: "稳态频率调整率", unit: "", type: "text" },
+          { key: "_widget_1784249471762", label: "电压波动率", unit: "", type: "text" },
+          { key: "_widget_1784249471885", label: "频率波动率", unit: "", type: "text" },
+          { key: "_widget_1784249472133", label: "瞬态负载", unit: "", type: "number" },
+          { key: "_widget_1784249472134", label: "瞬态电流 Iu", unit: "A", type: "number" },
+          { key: "_widget_1784249472135", label: "瞬态电流 Iv", unit: "A", type: "number" },
+          { key: "_widget_1784249472136", label: "瞬态电流 Iw", unit: "A", type: "number" },
+          { key: "_widget_1784249472137", label: "瞬态功率 P1", unit: "KW", type: "number" },
+          { key: "_widget_1784249472138", label: "瞬态功率 P2", unit: "KW", type: "number" },
+          { key: "_widget_1784249472139", label: "瞬态功率 P3", unit: "KW", type: "number" },
+          { key: "_widget_1784249472140", label: "瞬态功率 P", unit: "KW", type: "number" },
+          { key: "_widget_1784249472141", label: "瞬态电压 Uuv", unit: "V", type: "number" },
+          { key: "_widget_1784249472142", label: "瞬态电压 Uvw", unit: "V", type: "number" },
+          { key: "_widget_1784249472143", label: "瞬态电压 Uwu", unit: "V", type: "number" },
+          { key: "_widget_1784249472144", label: "瞬态电压 Us", unit: "V", type: "number" },
+          { key: "_widget_1784249472628", label: "电压稳定时间", unit: "s", type: "number" },
+          { key: "_widget_1784249472145", label: "瞬态频率 f", unit: "Hz", type: "number" },
+          { key: "_widget_1784249472146", label: "瞬态频率 fs", unit: "Hz", type: "number" },
+          { key: "_widget_1784249472147", label: "频率稳定时间", unit: "s", type: "number" },
+          { key: "_widget_1784249473633", label: "瞬态电压调整率", unit: "", type: "text" },
+          { key: "_widget_1784249473634", label: "瞬态频率调整率", unit: "", type: "text" },
+          { key: "_widget_1784271645400", label: "合格标准-稳态电压调整率", unit: "", type: "text" },
+          { key: "_widget_1784271645544", label: "合格标准-稳态频率调整率", unit: "", type: "text" },
+          { key: "_widget_1784271645549", label: "合格标准-电压波动率", unit: "", type: "text" },
+          { key: "_widget_1784271645556", label: "合格标准-频率波动率", unit: "", type: "text" },
+          { key: "_widget_1784271645565", label: "合格标准-瞬态电压调整率", unit: "", type: "text" },
+          { key: "_widget_1784271645576", label: "合格标准-瞬态频率调整率", unit: "", type: "text" },
+          { key: "_widget_1784252646102", label: "质检结果", unit: "", type: "text" }
+        ],
+        summaryFields: [
+          { key: "_widget_1784252071051", label: "生产工单", unit: "", type: "text" },
+          { key: "_widget_1784252071068", label: "产品名称", unit: "", type: "text" },
+          { key: "_widget_1784259585299", label: "检测序号", unit: "", type: "text" },
+          { key: "_widget_1784252646102", label: "质检结果", unit: "", type: "text" }
+        ],
+        subtables: [
+          {
+            key: "_widget_1784249468149",
+            title: "稳态指标测试",
+            columns: [
+              { key: "_widget_1784249468214", label: "负载", type: "number" },
+              { key: "_widget_1784249468436", label: "Iu(A)", type: "number" },
+              { key: "_widget_1784249468484", label: "Iv(A)", type: "number" },
+              { key: "_widget_1784249468534", label: "Iw(A)", type: "number" },
+              { key: "_widget_1784249468754", label: "P(KW)", type: "number" },
+              { key: "_widget_1784249468833", label: "Uuv(V)", type: "number" },
+              { key: "_widget_1784249468935", label: "Uvw(V)", type: "number" },
+              { key: "_widget_1784249469213", label: "f(Hz)", type: "number" }
+            ]
+          },
+          {
+            key: "_widget_1784249471472",
+            title: "稳态 / 瞬态指标计算结果",
+            orientation: "vertical",
+            columns: [
+              { key: "_widget_1784249471558", label: "稳态电压调整率", type: "text" },
+              { key: "_widget_1784249471630", label: "稳态频率调整率", type: "text" },
+              { key: "_widget_1784249471762", label: "电压波动率", type: "text" },
+              { key: "_widget_1784249471885", label: "频率波动率", type: "text" },
+              { key: "_widget_1784249473633", label: "瞬态电压调整率", type: "text", sourceKey: "_widget_1784249473632" },
+              { key: "_widget_1784249473634", label: "瞬态频率调整率", type: "text", sourceKey: "_widget_1784249473632" }
+            ]
+          },
+          {
+            key: "_widget_1784249472132",
+            title: "瞬态指标测试",
+            columns: [
+              { key: "_widget_1784249472133", label: "负载", type: "number" },
+              { key: "_widget_1784249472134", label: "Iu(A)", type: "number" },
+              { key: "_widget_1784249472135", label: "Iv(A)", type: "number" },
+              { key: "_widget_1784249472136", label: "Iw(A)", type: "number" },
+              { key: "_widget_1784249472140", label: "P(KW)", type: "number" },
+              { key: "_widget_1784249472141", label: "Uuv(V)", type: "number" },
+              { key: "_widget_1784249472145", label: "f(Hz)", type: "number" },
+              { key: "_widget_1784249472147", label: "频率稳定时间(s)", type: "number" }
+            ]
+          },
+          {
+            key: "_widget_1784271645314",
+            title: "合格标准",
+            orientation: "vertical",
+            columns: [
+              { key: "_widget_1784271645400", label: "稳态电压调整率", type: "text" },
+              { key: "_widget_1784271645544", label: "稳态频率调整率", type: "text" },
+              { key: "_widget_1784271645549", label: "电压波动率", type: "text" },
+              { key: "_widget_1784271645556", label: "频率波动率", type: "text" },
+              { key: "_widget_1784271645565", label: "瞬态电压调整率", type: "text" },
+              { key: "_widget_1784271645576", label: "瞬态频率调整率", type: "text" }
+            ]
+          }
+        ]
+      }
+    };
+
+    const state = {
+      activeDeviceId: DEVICES[0].id,
+      deviceStatus: new Map()
+    };
+
+    const el = {
+      uploadTime: document.getElementById("uploadTime"),
+      systemStatus: document.getElementById("systemStatus"),
+      deviceNav: document.getElementById("deviceNav"),
+      deviceTitle: document.getElementById("deviceTitle"),
+      metricGrid: document.getElementById("metricGrid"),
+      detailView: document.getElementById("detailView")
+    };
+
+    function getActiveDevice() {
+      return DEVICES.find(item => item.id === state.activeDeviceId) || DEVICES[0];
+    }
+
+    function formatValue(value, config) {
+      if (value === null || value === undefined || value === "") return "--";
+      if (config.type === "number") {
+        const num = Number(value);
+        if (Number.isNaN(num)) return String(value);
+        return Math.abs(num) >= 1000
+          ? num.toLocaleString("zh-CN", { maximumFractionDigits: 2 })
+          : num.toLocaleString("zh-CN", { maximumFractionDigits: 3 });
+      }
+      return String(value);
+    }
+
+    function formatTime(value) {
+      if (!value) return "--";
+      const date = new Date(String(value).replace(/-/g, "/"));
+      if (Number.isNaN(date.getTime())) return String(value);
+      const parts = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+      ];
+      const time = [
+        String(date.getHours()).padStart(2, "0"),
+        String(date.getMinutes()).padStart(2, "0"),
+        String(date.getSeconds()).padStart(2, "0")
+      ];
+      return parts.join("-") + " " + time.join(":");
+    }
+
+    function parseTime(value) {
+      if (!value) return null;
+      const date = new Date(String(value).replace(/-/g, "/"));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function getStatusFromRecord(device, record) {
+      const template = TEMPLATES[device.template];
+      const uploadTime = parseTime(record?.[template.timeKey]);
+      if (!uploadTime) {
+        return device.template === "test_station"
+          ? { text: "待机", className: "idle" }
+          : { text: "离线", className: "offline" };
+      }
+      const diffMs = Date.now() - uploadTime.getTime();
+      const isOnline = diffMs <= 30 * 60 * 1000;
+      if (!isOnline && device.template === "test_station") {
+        return { text: "待机", className: "idle" };
+      }
+      return { text: isOnline ? "在线" : "离线", className: isOnline ? "online" : "offline" };
+    }
+
+    function renderNav() {
+      el.deviceNav.innerHTML = DEVICES.map(device => `
+        <button class="nav-item ${device.id === state.activeDeviceId ? "active" : ""}" data-device-id="${device.id}" type="button">
+          <strong>${device.name}</strong>
+          <span class="nav-status ${state.deviceStatus.get(device.id)?.className || "idle"}">${state.deviceStatus.get(device.id)?.text || "待加载"}</span>
+        </button>
+      `).join("");
+
+      el.deviceNav.querySelectorAll(".nav-item").forEach(button => {
+        button.addEventListener("click", () => {
+          const { deviceId } = button.dataset;
+          if (deviceId === state.activeDeviceId) return;
+          state.activeDeviceId = deviceId;
+          renderNav();
+          loadActiveDevice();
+        });
+      });
+    }
+
+    function renderMetricCards(fields, record) {
+      el.metricGrid.hidden = false;
+      el.detailView.hidden = true;
+      el.metricGrid.innerHTML = fields.map(item => `
+        <article class="metric-card">
+          <div class="metric-label">${item.label}</div>
+          <div class="metric-value">${formatValue(record[item.key], item)}</div>
+          <div class="metric-unit">${item.unit || ""}</div>
+        </article>
+      `).join("");
+      el.detailView.innerHTML = "";
+    }
+
+    function renderSubtableTable(table, record) {
+      const rows = record?.[table.key];
+      const { columns, orientation } = table;
+
+      if (orientation === "vertical") {
+        const source = Array.isArray(rows) && rows.length ? rows[0] : rows;
+        if (!source || typeof source !== "object") {
+          return `<div class="empty-state">当前子表单暂无数据</div>`;
+        }
+
+        return `
+          <div class="subtable-wrap vertical-wrap">
+            <table class="subtable vertical">
+              <thead>
+                <tr>
+                  <th>参数</th>
+                  <th>数值</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${columns.map(column => `
+                  <tr>
+                    <td>${column.label}</td>
+                    <td>${formatValue(
+                      (
+                        column.sourceKey
+                          ? (Array.isArray(record?.[column.sourceKey]) ? record[column.sourceKey][0] : record?.[column.sourceKey])
+                          : source
+                      )?.[column.key],
+                      column
+                    )}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      if (!Array.isArray(rows) || !rows.length) {
+        return `<div class="empty-state">当前子表单暂无数据</div>`;
+      }
+
+      return `
+        <div class="subtable-wrap horizontal-wrap">
+          <table class="subtable">
+            <thead>
+              <tr>
+                ${columns.map(column => `<th>${column.label}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(row => `
+                <tr>
+                  ${columns.map(column => `<td>${formatValue(row?.[column.key], column)}</td>`).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderTestStationMetrics(template, record) {
+      el.metricGrid.hidden = true;
+      el.detailView.hidden = false;
+
+      const renderSummaryCards = fields => fields.map(item => {
+        if (item.type === "group") {
+          const lines = item.lines
+            .map(line => `${line.label}：${formatValue(record[line.key], { type: "text" })}`)
+            .join("\n");
+          return `
+            <article class="metric-card">
+              <div class="metric-label">${item.label}</div>
+              <div class="metric-value compact">${lines}</div>
+              <div class="metric-unit"></div>
+            </article>
+          `;
+        }
+
+        return `
+          <article class="metric-card">
+            <div class="metric-label">${item.label}</div>
+            <div class="metric-value">${formatValue(record[item.key], item)}</div>
+            <div class="metric-unit">${item.unit || ""}</div>
+          </article>
+        `;
+      }).join("");
+
+      const summaryHtml = renderSummaryCards(template.summaryFields);
+
+      const subtablesHtml = template.subtables.map(table => `
+        <section class="subtable-panel">
+          <div class="subtable-head">
+            <h3>${table.title}</h3>
+            <span>${Array.isArray(record?.[table.key]) ? `共 ${record[table.key].length} 条` : "无明细"}</span>
+          </div>
+          ${renderSubtableTable(table, record)}
+        </section>
+      `).join("");
+
+      el.detailView.innerHTML = `
+        <section class="summary-section">
+          <h3>基础信息</h3>
+          <div class="summary-grid">${summaryHtml}</div>
+        </section>
+        <section class="subtable-grid">${subtablesHtml}</section>
+      `;
+      el.metricGrid.innerHTML = "";
+    }
+
+    function renderMetrics(device, record) {
+      const template = TEMPLATES[device.template];
+      if (template.mode === "subtables") {
+        renderTestStationMetrics(template, record);
+        return;
+      }
+
+      const fields = template.fields;
+      el.metricGrid.innerHTML = fields.map(item => `
+        <article class="metric-card">
+          <div class="metric-label">${item.label}</div>
+          <div class="metric-value">${formatValue(record[item.key], item)}</div>
+          <div class="metric-unit">${item.unit || ""}</div>
+        </article>
+      `).join("");
+      el.metricGrid.hidden = false;
+      el.detailView.hidden = true;
+      el.detailView.innerHTML = "";
+    }
+
+    function renderEmpty(message) {
+      el.metricGrid.hidden = false;
+      el.detailView.hidden = true;
+      el.metricGrid.innerHTML = `<div class="empty-state">${message}</div>`;
+      el.detailView.innerHTML = "";
+    }
+
+    async function fetchLatestRecord(device) {
+      const template = TEMPLATES[device.template];
+      const body = {
+        limit: 1,
+        skip: 0,
+        sort: {
+          [template.timeKey]: "desc"
+        }
+      };
+
+      const attempts = [
+        { headers: { "Content-Type": "application/json", "x-api-key": API_KEY } },
+        { headers: { "Content-Type": "application/json", "api-key": API_KEY } },
+        { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` } }
+      ];
+
+      let lastError = null;
+      for (const attempt of attempts) {
+        try {
+          const response = await fetch(device.apiUrl, {
+            method: "POST",
+            headers: attempt.headers,
+            body: JSON.stringify(body)
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          const list = Array.isArray(result.data) ? result.data : [];
+          if (!list.length) throw new Error("接口返回为空");
+          return list[0];
+        } catch (error) {
+          lastError = error.message;
+        }
+      }
+      throw new Error(lastError || "请求失败");
+    }
+
+    async function loadActiveDevice() {
+      const device = getActiveDevice();
+      const template = TEMPLATES[device.template];
+      el.deviceTitle.textContent = device.name;
+      el.systemStatus.textContent = "刷新中";
+      el.systemStatus.style.color = "#ffcf5a";
+      el.uploadTime.textContent = "加载中";
+      state.deviceStatus.set(device.id, { text: "加载中", className: "loading" });
+      renderNav();
+      renderEmpty(`正在加载${device.name}最新数据...`);
+
+      try {
+        const record = await fetchLatestRecord(device);
+        const status = getStatusFromRecord(device, record);
+        state.deviceStatus.set(device.id, status);
+        renderMetrics(device, record);
+        renderNav();
+        el.uploadTime.textContent = formatTime(record[template.timeKey]);
+        el.systemStatus.textContent = status.text;
+        el.systemStatus.style.color = status.className === "online"
+          ? "#68ffa8"
+          : status.className === "idle"
+            ? "#8eadd1"
+            : "#ff88a7";
+      } catch (error) {
+        renderEmpty(`${device.name} 数据加载失败，请检查接口或鉴权配置。`);
+        el.uploadTime.textContent = "--";
+        state.deviceStatus.set(
+          device.id,
+          device.template === "test_station"
+            ? { text: "待机", className: "idle" }
+            : { text: "离线", className: "offline" }
+        );
+        renderNav();
+        el.systemStatus.textContent = device.template === "test_station" ? "待机" : "离线";
+        el.systemStatus.style.color = device.template === "test_station" ? "#8eadd1" : "#ff88a7";
+        console.error(`${device.name} 数据加载失败:`, error.message);
+      }
+    }
+
+    renderNav();
+    loadActiveDevice();
+    window.setInterval(loadActiveDevice, REFRESH_INTERVAL);
+  </script>
+</body>
+</html>
