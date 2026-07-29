@@ -6,20 +6,18 @@
   <title>鼎杰金属设备大屏</title>
   <style>
     :root {
-      --bg-1: #071018;
-      --bg-2: #091b28;
-      --bg-3: #102d3f;
-      --panel: rgba(8, 24, 38, 0.82);
-      --panel-strong: rgba(9, 31, 48, 0.94);
-      --line: rgba(117, 207, 255, 0.18);
-      --line-strong: rgba(117, 207, 255, 0.32);
-      --text: #eff8ff;
-      --muted: #8fb3cb;
-      --cyan: #67ecff;
-      --green: #7ef5a7;
-      --gold: #ffd97d;
-      --red: #ff8aa1;
-      --shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+      --bg: #07111f;
+      --panel: rgba(9, 25, 46, 0.82);
+      --panel-strong: rgba(10, 34, 63, 0.94);
+      --line: rgba(117, 181, 255, 0.18);
+      --text: #ebf5ff;
+      --muted: #8eadd1;
+      --accent: #5be7ff;
+      --accent-2: #68ffa8;
+      --accent-3: #ffd36a;
+      --danger: #ff7f9f;
+      --panel-edge: rgba(255, 255, 255, 0.05);
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
     }
 
     * {
@@ -29,13 +27,12 @@
     body {
       margin: 0;
       min-height: 100vh;
-      color: var(--text);
       font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
       background:
-        radial-gradient(circle at 15% 12%, rgba(103, 236, 255, 0.18), transparent 24%),
-        radial-gradient(circle at 82% 18%, rgba(126, 245, 167, 0.15), transparent 20%),
-        radial-gradient(circle at 50% 100%, rgba(255, 217, 125, 0.08), transparent 28%),
-        linear-gradient(135deg, var(--bg-1), var(--bg-2) 42%, var(--bg-3));
+        radial-gradient(circle at top left, rgba(91, 231, 255, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(104, 255, 168, 0.14), transparent 22%),
+        linear-gradient(135deg, #030812 0%, #07111f 38%, #081a31 100%);
       overflow-x: hidden;
     }
 
@@ -43,25 +40,27 @@
     body::after {
       content: "";
       position: fixed;
-      inset: auto;
-      width: 32vw;
-      height: 32vw;
-      border-radius: 50%;
-      filter: blur(20px);
       pointer-events: none;
       z-index: 0;
+      border-radius: 50%;
     }
 
     body::before {
-      top: -14vw;
-      right: -12vw;
-      background: radial-gradient(circle, rgba(103, 236, 255, 0.18), transparent 66%);
+      top: -18vh;
+      right: -8vw;
+      width: 40vw;
+      height: 40vw;
+      background: radial-gradient(circle, rgba(91, 231, 255, 0.18), transparent 62%);
+      filter: blur(10px);
     }
 
     body::after {
-      bottom: -16vw;
-      left: -10vw;
-      background: radial-gradient(circle, rgba(126, 245, 167, 0.12), transparent 70%);
+      bottom: -20vh;
+      left: -12vw;
+      width: 42vw;
+      height: 42vw;
+      background: radial-gradient(circle, rgba(104, 255, 168, 0.12), transparent 64%);
+      filter: blur(16px);
     }
 
     .screen {
@@ -69,13 +68,13 @@
       z-index: 1;
       width: min(1680px, calc(100vw - 28px));
       margin: 0 auto;
-      padding: 18px 0 26px;
+      padding: 20px 0 28px;
     }
 
     .panel {
       position: relative;
       overflow: hidden;
-      border-radius: 28px;
+      border-radius: 24px;
       border: 1px solid var(--line);
       background: linear-gradient(180deg, var(--panel-strong), var(--panel));
       box-shadow: var(--shadow);
@@ -87,8 +86,8 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%),
-        linear-gradient(135deg, rgba(103, 236, 255, 0.06), transparent 35%);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%),
+        linear-gradient(135deg, rgba(91, 231, 255, 0.06), transparent 24%);
       pointer-events: none;
     }
 
@@ -97,245 +96,304 @@
       position: absolute;
       inset: 1px;
       border-radius: inherit;
-      border: 1px solid rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--panel-edge);
       pointer-events: none;
     }
 
     .topbar {
+      position: relative;
+      overflow: hidden;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      gap: 16px;
       align-items: stretch;
-      margin-bottom: 18px;
-      padding: 22px 24px;
+      margin-bottom: 20px;
+      padding: 24px 26px;
+      border-radius: 30px;
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.08), transparent 30%),
+        linear-gradient(180deg, rgba(7, 20, 37, 0.95), rgba(7, 20, 37, 0.74));
     }
 
-    .brand h1 {
+    .topbar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent, rgba(91, 231, 255, 0.08), transparent),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 45%);
+      pointer-events: none;
+    }
+
+    .topbar::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -26px;
+      transform: translateX(-50%);
+      width: 240px;
+      height: 70px;
+      background: radial-gradient(circle, rgba(91, 231, 255, 0.28), transparent 72%);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    .title-wrap h1 {
+      position: relative;
       margin: 0;
-      font-size: clamp(30px, 3.6vw, 44px);
-      letter-spacing: 0.14em;
+      font-size: clamp(30px, 3.4vw, 44px);
+      letter-spacing: 0.16em;
       font-weight: 700;
-      text-shadow: 0 0 24px rgba(103, 236, 255, 0.16);
+      text-shadow: 0 0 22px rgba(91, 231, 255, 0.18);
     }
 
-    .brand p {
+    .title-wrap p {
+      position: relative;
       margin: 10px 0 0;
       color: var(--muted);
+      font-size: 14px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      font-size: 13px;
     }
 
-    .headline {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-
-    .badge {
+    .refresh-tag {
+      position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
+      margin-top: 18px;
+      padding: 8px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(117, 207, 255, 0.14);
-      background: rgba(255, 255, 255, 0.03);
-      font-size: 12px;
+      border: 1px solid rgba(117, 181, 255, 0.16);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--muted);
+      font-size: 12px;
     }
 
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(190px, 1.4fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(220px, 1.35fr);
       gap: 12px;
+      align-content: center;
     }
 
     .stat-card {
+      position: relative;
       padding: 16px;
-      border-radius: 20px;
-      background: rgba(7, 27, 43, 0.7);
-      border: 1px solid rgba(117, 207, 255, 0.12);
+      border-radius: 18px;
+      background: rgba(8, 28, 54, 0.75);
+      border: 1px solid rgba(117, 181, 255, 0.18);
     }
 
     .stat-card span {
       display: block;
       color: var(--muted);
       font-size: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .stat-card strong {
       display: block;
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .main {
+    .layout {
       display: grid;
-      grid-template-columns: minmax(260px, 0.68fr) minmax(0, 1.92fr);
-      gap: 18px;
+      grid-template-columns: 260px 1fr;
+      gap: 20px;
+      align-items: start;
     }
 
-    .left-column,
-    .right-column {
-      display: grid;
-      gap: 18px;
+    .sidebar {
+      padding: 20px;
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow: hidden;
     }
 
-    .panel-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    .panel-head h2 {
+    .sidebar h2,
+    .content-head h2 {
+      position: relative;
       margin: 0;
-      font-size: 20px;
+      font-size: 18px;
       letter-spacing: 0.08em;
+      font-weight: 600;
     }
 
-    .panel-head small {
+    .sidebar small,
+    .content-head small {
       color: var(--muted);
       font-size: 12px;
     }
 
-    .device-overview {
-      padding: 22px;
-    }
-
-    .device-list {
+    .nav {
+      margin-top: 18px;
       display: grid;
-      gap: 14px;
+      gap: 12px;
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+      padding-right: 6px;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(91, 231, 255, 0.45) transparent;
     }
 
-    .device-card {
+    .nav::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .nav::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .nav::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(91, 231, 255, 0.35);
+    }
+
+    .nav-item {
       position: relative;
+      overflow: hidden;
       width: 100%;
-      padding: 18px 18px 16px;
-      border-radius: 22px;
-      border: 1px solid rgba(117, 207, 255, 0.14);
+      border: 1px solid rgba(117, 181, 255, 0.14);
       background:
-        linear-gradient(140deg, rgba(103, 236, 255, 0.08), transparent 35%),
-        linear-gradient(180deg, rgba(12, 35, 53, 0.96), rgba(8, 24, 39, 0.84));
+        linear-gradient(180deg, rgba(14, 36, 64, 0.9), rgba(8, 24, 44, 0.78));
+      border-radius: 20px;
+      padding: 18px 16px;
       color: var(--text);
       text-align: left;
       cursor: pointer;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 12px 24px rgba(0, 0, 0, 0.16);
       transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    .device-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--line-strong);
-      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.2);
+    .nav-item:hover {
+      transform: translateY(-3px);
+      border-color: rgba(91, 231, 255, 0.36);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 18px 30px rgba(0, 0, 0, 0.22);
     }
 
-    .device-card.active {
-      border-color: rgba(103, 236, 255, 0.42);
+    .nav-item.active {
       background:
-        linear-gradient(140deg, rgba(103, 236, 255, 0.18), rgba(126, 245, 167, 0.08) 48%, transparent 78%),
-        linear-gradient(180deg, rgba(14, 41, 62, 0.98), rgba(10, 31, 48, 0.88));
-      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+        linear-gradient(135deg, rgba(91, 231, 255, 0.24), rgba(104, 255, 168, 0.14)),
+        linear-gradient(180deg, rgba(13, 41, 68, 0.98), rgba(10, 34, 58, 0.9));
+      border-color: rgba(91, 231, 255, 0.42);
+      box-shadow:
+        inset 0 0 0 1px rgba(91, 231, 255, 0.12),
+        0 18px 32px rgba(5, 15, 31, 0.28);
     }
 
-    .device-top {
-      display: flex;
-      align-items: start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .device-name {
-      font-size: 20px;
+    .nav-item strong {
+      display: block;
+      font-size: 18px;
       font-weight: 700;
-      line-height: 1.2;
+      margin-bottom: 8px;
     }
 
-    .device-kind {
-      margin-top: 6px;
+    .nav-item em {
+      display: block;
+      font-style: normal;
       color: var(--muted);
       font-size: 12px;
+      margin-bottom: 12px;
       letter-spacing: 0.08em;
     }
 
-    .status {
+    .nav-status {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 5px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(255, 255, 255, 0.03);
-      white-space: nowrap;
       font-size: 12px;
       color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .status::before {
+    .nav-status::before {
       content: "";
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #7992a8;
-      box-shadow: 0 0 12px rgba(121, 146, 168, 0.4);
+      background: #7f8fa6;
+      box-shadow: 0 0 10px rgba(127, 143, 166, 0.4);
     }
 
-    .status.online::before {
-      background: var(--green);
-      box-shadow: 0 0 12px rgba(126, 245, 167, 0.48);
+    .nav-status.online::before {
+      background: var(--accent-2);
+      box-shadow: 0 0 12px rgba(104, 255, 168, 0.5);
     }
 
-    .status.offline::before {
-      background: var(--red);
-      box-shadow: 0 0 12px rgba(255, 138, 161, 0.45);
+    .nav-status.offline::before {
+      background: var(--danger);
+      box-shadow: 0 0 12px rgba(255, 127, 159, 0.45);
     }
 
-    .status.loading::before {
-      background: var(--gold);
-      box-shadow: 0 0 12px rgba(255, 217, 125, 0.45);
+    .nav-status.loading::before {
+      background: var(--accent-3);
+      box-shadow: 0 0 12px rgba(255, 207, 90, 0.45);
     }
 
-    .detail-panel {
-      padding: 22px;
+    .content {
+      padding: 24px;
     }
 
-    .detail-hero {
+    .content-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .content-title strong {
+      display: block;
+      font-size: clamp(28px, 2.7vw, 36px);
+      line-height: 1.2;
+      margin-top: 10px;
+      text-shadow: 0 0 18px rgba(91, 231, 255, 0.12);
+    }
+
+    .content-meta {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .hero-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 14px;
-      margin-bottom: 16px;
     }
 
     .hero-card,
-    .timeline-card {
+    .status-card {
       padding: 18px;
       border-radius: 22px;
       background:
-        linear-gradient(135deg, rgba(103, 236, 255, 0.08), transparent 38%),
-        rgba(7, 26, 41, 0.68);
-      border: 1px solid rgba(117, 207, 255, 0.12);
+        linear-gradient(135deg, rgba(91, 231, 255, 0.07), transparent 45%),
+        rgba(7, 24, 44, 0.5);
+      border: 1px solid rgba(117, 181, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
     }
 
     .hero-card h3,
-    .timeline-card h3 {
+    .status-card h3 {
       margin: 0 0 12px;
       font-size: 13px;
-      color: var(--muted);
       letter-spacing: 0.12em;
       text-transform: uppercase;
+      color: var(--muted);
       font-weight: 500;
-    }
-
-    .hero-card strong {
-      display: block;
-      font-size: clamp(28px, 2.8vw, 38px);
-      line-height: 1.15;
-      margin-bottom: 10px;
     }
 
     .hero-card p {
@@ -345,101 +403,148 @@
       font-size: 14px;
     }
 
-    .timeline-card .time {
+    .hero-card .status-main {
+      display: block;
+      margin-bottom: 10px;
+      font-size: clamp(28px, 2.5vw, 36px);
+      line-height: 1.2;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 0 18px rgba(91, 231, 255, 0.12);
+    }
+
+    .status-card .time {
       font-size: 24px;
       font-weight: 700;
       margin-bottom: 10px;
     }
 
-    .timeline-card .sub {
+    .status-card .sub {
       color: var(--muted);
-      line-height: 1.8;
       font-size: 13px;
+      line-height: 1.8;
     }
 
-    .metrics {
+    .metric-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
+      gap: 14px;
     }
 
-    .metric {
-      min-height: 140px;
-      padding: 16px;
+    .metric-card {
+      position: relative;
+      overflow: hidden;
+      padding: 18px 16px;
       border-radius: 20px;
-      border: 1px solid rgba(117, 207, 255, 0.12);
       background:
-        radial-gradient(circle at top right, rgba(103, 236, 255, 0.14), transparent 36%),
-        linear-gradient(180deg, rgba(11, 32, 50, 0.96), rgba(7, 24, 39, 0.84));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        linear-gradient(180deg, rgba(12, 34, 61, 0.95), rgba(7, 24, 44, 0.82));
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 14px 28px rgba(0, 0, 0, 0.16);
+      min-height: 144px;
     }
 
-    .metric.wide-compact {
+    .metric-card.wide-compact {
       grid-column: span 2;
       min-height: 96px;
-      padding: 14px 16px 12px;
-    }
-
-    .metric.wide-compact .metric-label {
-      min-height: auto;
-    }
-
-    .metric.wide-compact .metric-value {
-      margin-top: 8px;
-      font-size: 22px;
-      line-height: 1.25;
-    }
-
-    .metric.subform {
-      grid-column: span 2;
-      min-height: 220px;
+      padding-top: 14px;
+      padding-bottom: 12px;
     }
 
     .metric-label {
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.5;
-      min-height: 36px;
+      min-height: 34px;
+      line-height: 1.45;
+    }
+
+    .metric-card.wide-compact .metric-label {
+      min-height: auto;
     }
 
     .metric-value {
       margin-top: 10px;
       font-size: 26px;
       font-weight: 700;
-      line-height: 1.2;
+      color: #ffffff;
       word-break: break-word;
+      text-shadow: 0 0 20px rgba(91, 231, 255, 0.08);
     }
 
-    .metric-value.subform {
-      font-size: 13px;
-      font-weight: 500;
-      line-height: 1.7;
-      white-space: normal;
+    .metric-card.wide-compact .metric-value {
+      margin-top: 8px;
+      font-size: 22px;
+      line-height: 1.25;
     }
 
-    .subform-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .subform-item {
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(117, 207, 255, 0.08);
-    }
-
-    .subform-item strong {
-      display: block;
-      margin-bottom: 6px;
-      color: #c9efff;
+    .metric-unit {
+      margin-top: 6px;
+      color: #9edfff;
       font-size: 12px;
       letter-spacing: 0.04em;
     }
 
-    .subform-item p {
+    .empty-state {
+      padding: 42px 20px;
+      border-radius: 24px;
+      border: 1px dashed rgba(117, 181, 255, 0.18);
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.06), transparent 38%),
+        rgba(7, 24, 44, 0.45);
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .subform-panel {
+      display: none;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.07), transparent 45%),
+        rgba(7, 24, 44, 0.5);
+      border: 1px solid rgba(117, 181, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .subform-panel.show {
+      display: block;
+    }
+
+    .subform-panel h3 {
       margin: 0;
-      color: var(--text);
+      font-size: 18px;
+      letter-spacing: 0.06em;
+    }
+
+    .subform-panel small {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .subform-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .subform-item {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(117, 181, 255, 0.08);
+    }
+
+    .subform-item strong {
+      display: block;
+      margin-bottom: 10px;
+      color: #c9efff;
+      font-size: 12px;
+      letter-spacing: 0.04em;
     }
 
     .subform-fields {
@@ -449,10 +554,10 @@
     }
 
     .subform-field {
-      padding: 8px 10px;
+      padding: 10px 12px;
       border-radius: 12px;
       background: rgba(0, 0, 0, 0.12);
-      border: 1px solid rgba(117, 207, 255, 0.06);
+      border: 1px solid rgba(117, 181, 255, 0.06);
     }
 
     .subform-field span {
@@ -471,66 +576,35 @@
       word-break: break-word;
     }
 
-    .metric-unit {
-      margin-top: 8px;
-      color: #a8ddff;
-      font-size: 12px;
-      letter-spacing: 0.04em;
-    }
-
-    .empty {
-      padding: 44px 20px;
-      border-radius: 24px;
-      text-align: center;
-      color: var(--muted);
-      border: 1px dashed rgba(117, 207, 255, 0.18);
-      background: rgba(7, 24, 39, 0.46);
-      line-height: 1.8;
-    }
-
-    .subform-panel {
-      display: none;
-      margin-top: 16px;
-      padding: 18px;
-      border-radius: 22px;
-      border: 1px solid rgba(117, 207, 255, 0.12);
-      background:
-        linear-gradient(135deg, rgba(103, 236, 255, 0.08), transparent 40%),
-        rgba(7, 26, 41, 0.62);
-    }
-
-    .subform-panel.show {
-      display: block;
-    }
-
-    .subform-panel h3 {
-      margin: 0 0 12px;
-      font-size: 16px;
-      letter-spacing: 0.06em;
-    }
-
-    .subform-panel small {
-      display: block;
-      margin-bottom: 14px;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    @media (max-width: 1320px) {
-      .main,
-      .detail-hero,
-      .topbar {
+    @media (max-width: 1360px) {
+      .layout {
         grid-template-columns: 1fr;
       }
 
-      .metrics {
+      .sidebar {
+        position: static;
+        max-height: none;
+      }
+
+      .nav {
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+      }
+
+      .metric-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
 
-    @media (max-width: 960px) {
+    @media (max-width: 1024px) {
+      .topbar,
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
       .stats,
-      .metrics {
+      .metric-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
@@ -539,21 +613,30 @@
       }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 720px) {
       .screen {
-        width: min(100vw - 16px, 100%);
-        padding-top: 10px;
+        width: min(100vw - 18px, 100%);
+        padding-top: 12px;
       }
 
       .topbar,
-      .device-overview,
-      .detail-panel {
+      .content,
+      .sidebar {
         padding: 18px;
       }
 
       .stats,
-      .metrics {
+      .metric-grid {
         grid-template-columns: 1fr;
+      }
+
+      .metric-card.wide-compact {
+        grid-column: span 1;
+      }
+
+      .content-head {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
@@ -561,14 +644,12 @@
 <body>
   <div class="screen">
     <header class="panel topbar">
-      <section class="brand">
+      <div class="title-wrap">
         <h1>鼎杰金属设备大屏</h1>
-        <p>DINGJIE METAL · MACHINE DATA CENTER</p>
-        <div class="headline">
-          <span class="badge" id="lastRefreshLabel">最近刷新：等待首次加载</span>
-        </div>
-      </section>
-      <section class="stats">
+        <p>DINGJIE METAL · MACHINE MONITOR</p>
+        <div class="refresh-tag" id="lastRefreshLabel">最近刷新：等待首次加载</div>
+      </div>
+      <div class="stats">
         <div class="stat-card">
           <span>接入设备</span>
           <strong id="deviceCount">5</strong>
@@ -585,50 +666,47 @@
           <span>当前关注</span>
           <strong id="focusName">切割系统</strong>
         </div>
-      </section>
+      </div>
     </header>
 
-    <main class="main">
-      <section class="left-column">
-        <div class="panel device-overview">
-          <div class="panel-head">
-            <div>
-              <h2>设备总览</h2>
-            </div>
+    <main class="layout">
+      <aside class="panel sidebar">
+        <h2>设备总览</h2>
+        <small>仅展示设备状态，点击切换明细</small>
+        <div class="nav" id="deviceNav"></div>
+      </aside>
+
+      <section class="panel content">
+        <div class="content-head">
+          <div class="content-title">
+            <h2>设备明细</h2>
+            <strong id="deviceTitle">切割系统</strong>
           </div>
-          <div class="device-list" id="deviceList"></div>
+          <small id="detailType">激光切割</small>
         </div>
-      </section>
 
-      <section class="right-column">
-        <div class="panel detail-panel">
-          <div class="panel-head">
-            <div>
-              <h2>设备明细</h2>
-            </div>
-            <small id="detailType">切割设备</small>
-          </div>
-
-          <div class="detail-hero">
+        <div class="content-meta">
+          <div class="hero-grid">
             <article class="hero-card">
-              <h3 id="heroLabel">当前设备</h3>
-              <strong id="heroTitle">切割系统</strong>
+              <h3 id="heroLabel">当前设备状态</h3>
+              <strong class="status-main" id="heroStatus">刷新中</strong>
               <p id="heroDesc">正在加载设备最新数据。</p>
             </article>
-            <article class="timeline-card">
+            <article class="status-card">
               <h3>上传信息</h3>
               <div class="time" id="uploadTime">加载中</div>
               <div class="sub" id="statusText">状态：刷新中</div>
             </article>
           </div>
-
-          <div class="metrics" id="metricGrid"></div>
-          <section class="subform-panel" id="subformPanel">
-            <h3 id="subformTitle">产品质检明细</h3>
-            <small id="subformHint"></small>
-            <div id="subformContent"></div>
-          </section>
         </div>
+
+        <div class="metric-grid" id="metricGrid"></div>
+
+        <section class="subform-panel" id="subformPanel">
+          <h3 id="subformTitle">产品质检明细</h3>
+          <small id="subformHint">子表字段按中文标题展示</small>
+          <div id="subformContent"></div>
+        </section>
       </section>
     </main>
   </div>
@@ -645,8 +723,6 @@
         typeLabel: "激光切割",
         apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/5a83f14071963bebe043663c/data",
         timeKey: "time",
-        summary: ["N_16", "N_17", "N_2"],
-        heroText: "聚焦加工效率、切割速度与当前加工文件。",
         fields: [
           { key: "N_14", label: "加工图纸名称", unit: "", type: "text" },
           { key: "N_1", label: "开气时长", unit: "s", type: "number" },
@@ -658,7 +734,7 @@
           { key: "N_7", label: "开光时长", unit: "s", type: "number" },
           { key: "N_8", label: "峰值功率", unit: "W", type: "number" },
           { key: "N_9", label: "跟随高度(设定值)", unit: "mm", type: "number" },
-          { key: "N_10", label: "PWM占空比", unit: "%", type: "number" },
+          { key: "N_10", label: "Pwm占空比", unit: "%", type: "number" },
           { key: "N_11", label: "切割气压", unit: "BAR", type: "number" },
           { key: "N_12", label: "气体类型", unit: "", type: "text" },
           { key: "N_13", label: "频率", unit: "Hz", type: "number" },
@@ -678,8 +754,6 @@
         typeLabel: "数控钻孔",
         apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/503d2d2dbe9ea2cd57f70b90/data",
         timeKey: "Datetime",
-        summary: ["N_1", "N_2", "N_9"],
-        heroText: "重点查看钻孔完成量、总加工量与当前坐标位置。",
         fields: [
           { key: "N_1", label: "已完成数量", unit: "个", type: "number" },
           { key: "N_2", label: "总加工数量", unit: "个", type: "number" },
@@ -698,8 +772,6 @@
         typeLabel: "数控钻孔",
         apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/5785323f70a553a2f49b333a/data",
         timeKey: "Datetime",
-        summary: ["N_2", "N_3", "N_8"],
-        heroText: "适合观察第二台钻孔机的孔数进度和轴位置反馈。",
         fields: [
           { key: "N_2", label: "已加工孔数", unit: "个", type: "number" },
           { key: "N_4", label: "Y轴程序值", unit: "mm", type: "number" },
@@ -716,8 +788,6 @@
         typeLabel: "等离子切割",
         apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/56ca1916118a676e47c44867/data",
         timeKey: "Datetime",
-        summary: ["N_8", "N_5", "N_12"],
-        heroText: "覆盖运行状态、切割距离、速度与文件名等关键字段。",
         fields: [
           { key: "N_1", label: "割缝", unit: "mm", type: "number" },
           { key: "N_2", label: "运行时间", unit: "h:m:s", type: "text" },
@@ -739,8 +809,6 @@
         typeLabel: "品质检测",
         apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/532d762b83b7094f6c03c536/data",
         timeKey: "N_3",
-        summary: ["N_12", "N_5", "N_6"],
-        heroText: "跟踪质检单据、产品信息和 5 次测量结果的平均值。",
         subformKey: "N_4",
         subformTitle: "产品质检明细",
         subformAliases: {
@@ -757,8 +825,8 @@
           N_12: "平均值"
         },
         fields: [
-          { key: "N_1", label: "报工单号", unit: "", type: "text" },
-          { key: "N_2", label: "计划单号", unit: "", type: "text" }
+          { key: "N_1", label: "报工单号", unit: "", type: "text", className: "wide-compact" },
+          { key: "N_2", label: "计划单号", unit: "", type: "text", className: "wide-compact" }
         ]
       }
     ];
@@ -766,7 +834,7 @@
     const state = {
       activeDeviceId: DEVICES[0].id,
       records: new Map(),
-      status: new Map(),
+      deviceStatus: new Map(),
       errors: new Map(),
       lastRefresh: null
     };
@@ -777,10 +845,11 @@
       offlineCount: document.getElementById("offlineCount"),
       focusName: document.getElementById("focusName"),
       lastRefreshLabel: document.getElementById("lastRefreshLabel"),
-      deviceList: document.getElementById("deviceList"),
+      deviceNav: document.getElementById("deviceNav"),
+      deviceTitle: document.getElementById("deviceTitle"),
       detailType: document.getElementById("detailType"),
       heroLabel: document.getElementById("heroLabel"),
-      heroTitle: document.getElementById("heroTitle"),
+      heroStatus: document.getElementById("heroStatus"),
       heroDesc: document.getElementById("heroDesc"),
       uploadTime: document.getElementById("uploadTime"),
       statusText: document.getElementById("statusText"),
@@ -793,14 +862,13 @@
 
     el.deviceCount.textContent = String(DEVICES.length);
 
-    function formatValue(value, field) {
+    function getDevice(deviceId) {
+      return DEVICES.find(item => item.id === deviceId);
+    }
+
+    function formatValue(value, config) {
       if (value === null || value === undefined || value === "") return "--";
-      if (field.type === "subform") {
-        if (Array.isArray(value)) return `${value.length} 条`;
-        if (typeof value === "object") return "1 条";
-        return String(value);
-      }
-      if (field.type === "number") {
+      if (config.type === "number") {
         const num = Number(value);
         if (Number.isNaN(num)) return String(value);
         return Math.abs(num) >= 1000
@@ -819,6 +887,84 @@
         .replace(/'/g, "&#39;");
     }
 
+    function formatTime(value) {
+      if (!value) return "--";
+      const date = new Date(String(value).replace(/-/g, "/"));
+      if (Number.isNaN(date.getTime())) return String(value);
+      const parts = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+      ];
+      const time = [
+        String(date.getHours()).padStart(2, "0"),
+        String(date.getMinutes()).padStart(2, "0"),
+        String(date.getSeconds()).padStart(2, "0")
+      ];
+      return parts.join("-") + " " + time.join(":");
+    }
+
+    function parseTime(value) {
+      if (!value) return null;
+      const date = new Date(String(value).replace(/-/g, "/"));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function getStatusFromRecord(device, record) {
+      const uploadTime = parseTime(record?.[device.timeKey]);
+      if (!uploadTime) {
+        return { text: "离线", className: "offline" };
+      }
+
+      const diffMs = Date.now() - uploadTime.getTime();
+      const isOnline = diffMs <= ONLINE_WINDOW_MS;
+      return {
+        text: isOnline ? "在线" : "离线",
+        className: isOnline ? "online" : "offline"
+      };
+    }
+
+    function renderNav() {
+      el.deviceNav.innerHTML = DEVICES.map(device => `
+        <button class="nav-item ${device.id === state.activeDeviceId ? "active" : ""}" data-device-id="${device.id}" type="button">
+          <strong>${device.name}</strong>
+          <em>${device.typeLabel}</em>
+          <span class="nav-status ${state.deviceStatus.get(device.id)?.className || ""}">${state.deviceStatus.get(device.id)?.text || "待加载"}</span>
+        </button>
+      `).join("");
+
+      el.deviceNav.querySelectorAll(".nav-item").forEach(button => {
+        button.addEventListener("click", () => {
+          const { deviceId } = button.dataset;
+          if (deviceId === state.activeDeviceId) return;
+          state.activeDeviceId = deviceId;
+          renderNav();
+          renderSummaryStats();
+          renderDetail();
+        });
+      });
+    }
+
+    function renderSummaryStats() {
+      let online = 0;
+      let offline = 0;
+
+      DEVICES.forEach(device => {
+        const status = state.deviceStatus.get(device.id);
+        if (status?.className === "online") online += 1;
+        if (status?.className === "offline") offline += 1;
+      });
+
+      el.onlineCount.textContent = String(online);
+      el.offlineCount.textContent = String(offline);
+      el.focusName.textContent = getDevice(state.activeDeviceId)?.name || "--";
+      el.lastRefreshLabel.textContent = `最近刷新：${state.lastRefresh ? formatTime(state.lastRefresh) : "等待首次加载"}`;
+    }
+
+    function renderEmpty(message) {
+      el.metricGrid.innerHTML = `<div class="empty-state">${message}</div>`;
+    }
+
     function flattenObjectEntries(input, prefix = "") {
       if (!input || typeof input !== "object" || Array.isArray(input)) return [];
       return Object.entries(input).flatMap(([key, value]) => {
@@ -833,14 +979,6 @@
       });
     }
 
-    function getFieldAlias(device, key) {
-      if (device.subformAliases?.[key]) return device.subformAliases[key];
-      const field = device.fields.find(item => item.key === key);
-      if (field?.label) return field.label;
-      if (key === device.timeKey) return "上传时间";
-      return key;
-    }
-
     function normalizeSubformRow(row) {
       if (!row || typeof row !== "object") return {};
       if (row.data && typeof row.data === "object" && !Array.isArray(row.data)) {
@@ -849,9 +987,19 @@
       return row;
     }
 
+    function getFieldAlias(device, key) {
+      if (device.subformAliases?.[key]) return device.subformAliases[key];
+      const field = device.fields.find(item => item.key === key);
+      if (field?.label) return field.label;
+      if (key === device.timeKey) return "上传时间";
+      return key;
+    }
+
     function renderSubformValue(device, value) {
       const rows = Array.isArray(value) ? value : (value && typeof value === "object" ? [value] : []);
-      if (!rows.length) return '<div class="empty">暂无子表数据</div>';
+      if (!rows.length) {
+        return '<div class="empty-state">暂无子表数据</div>';
+      }
 
       const ignoredKeys = new Set([
         "id",
@@ -875,143 +1023,51 @@
           ${rows.slice(0, 5).map((row, index) => {
             const entries = flattenObjectEntries(normalizeSubformRow(row)).filter(([key, itemValue]) => {
               const leafKey = key.split(".").pop();
-              return !ignoredKeys.has(leafKey) && itemValue !== null && itemValue !== undefined && itemValue !== "";
+              return !ignoredKeys.has(leafKey) && !/id$/i.test(leafKey) && itemValue !== null && itemValue !== undefined && itemValue !== "";
             });
+
             if (!entries.length) {
               return `
                 <div class="subform-item">
                   <strong>明细 ${index + 1}</strong>
-                  <p>无可展示字段</p>
+                  <div class="empty-state">无可展示字段</div>
                 </div>
               `;
             }
+
             return `
               <div class="subform-item">
                 <strong>明细 ${index + 1}</strong>
-                <div class="subform-fields">${entries.slice(0, 12).map(([key, itemValue]) => {
-                  const leafKey = key.split(".").pop();
-                  if (/id$/i.test(leafKey)) return "";
-                  return `
-                    <div class="subform-field">
-                      <span>${escapeHtml(getFieldAlias(device, leafKey))}</span>
-                      <em>${escapeHtml(itemValue)}</em>
-                    </div>
-                  `;
-                }).join("")}</div>
+                <div class="subform-fields">
+                  ${entries.slice(0, 12).map(([key, itemValue]) => {
+                    const leafKey = key.split(".").pop();
+                    return `
+                      <div class="subform-field">
+                        <span>${escapeHtml(getFieldAlias(device, leafKey))}</span>
+                        <em>${escapeHtml(itemValue)}</em>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
               </div>
             `;
           }).join("")}
-          ${rows.length > 5 ? `<div class="subform-item"><p>其余 ${rows.length - 5} 条明细未展开</p></div>` : ""}
+          ${rows.length > 5 ? `<div class="subform-item"><strong>补充说明</strong><div class="subform-field"><em>其余 ${rows.length - 5} 条明细未展开</em></div></div>` : ""}
         </div>
       `;
     }
 
-    function renderFieldValue(value, field) {
-      if (field.type === "subform") {
-        return renderSubformValue(getDevice(state.activeDeviceId), value);
-      }
-      return escapeHtml(formatValue(value, field));
-    }
-
     function renderSubformSection(device, record) {
-      const subformKey = device.subformKey;
-      if (!subformKey) {
+      if (!device.subformKey) {
         el.subformPanel.classList.remove("show");
         el.subformContent.innerHTML = "";
         return;
       }
 
       el.subformTitle.textContent = device.subformTitle || "子表明细";
-      el.subformContent.innerHTML = renderSubformValue(device, record?.[subformKey]);
+      el.subformHint.textContent = "子表字段按中文标题展示";
+      el.subformContent.innerHTML = renderSubformValue(device, record?.[device.subformKey]);
       el.subformPanel.classList.add("show");
-    }
-
-    function formatTime(value) {
-      if (!value) return "--";
-      const date = new Date(String(value).replace(/-/g, "/"));
-      if (Number.isNaN(date.getTime())) return String(value);
-      const datePart = [
-        date.getFullYear(),
-        String(date.getMonth() + 1).padStart(2, "0"),
-        String(date.getDate()).padStart(2, "0")
-      ].join("-");
-      const timePart = [
-        String(date.getHours()).padStart(2, "0"),
-        String(date.getMinutes()).padStart(2, "0"),
-        String(date.getSeconds()).padStart(2, "0")
-      ].join(":");
-      return `${datePart} ${timePart}`;
-    }
-
-    function parseTime(value) {
-      if (!value) return null;
-      const date = new Date(String(value).replace(/-/g, "/"));
-      return Number.isNaN(date.getTime()) ? null : date;
-    }
-
-    function statusFromRecord(device, record) {
-      const uploadTime = parseTime(record?.[device.timeKey]);
-      if (!uploadTime) {
-        return { text: "离线", className: "offline" };
-      }
-      const online = Date.now() - uploadTime.getTime() <= ONLINE_WINDOW_MS;
-      return {
-        text: online ? "在线" : "离线",
-        className: online ? "online" : "offline"
-      };
-    }
-
-    function getDevice(deviceId) {
-      return DEVICES.find(item => item.id === deviceId);
-    }
-
-    function renderOverview() {
-      const activeId = state.activeDeviceId;
-      el.deviceList.innerHTML = DEVICES.map(device => {
-        const status = state.status.get(device.id) || { text: "待加载", className: "" };
-        return `
-          <button class="device-card ${device.id === activeId ? "active" : ""}" data-device-id="${device.id}" type="button">
-            <div class="device-top">
-              <div>
-                <div class="device-name">${device.name}</div>
-                <div class="device-kind">${device.typeLabel}</div>
-              </div>
-              <span class="status ${status.className}">${status.text}</span>
-            </div>
-          </button>
-        `;
-      }).join("");
-
-      el.deviceList.querySelectorAll(".device-card").forEach(button => {
-        button.addEventListener("click", () => {
-          const { deviceId } = button.dataset;
-          if (!deviceId || deviceId === state.activeDeviceId) return;
-          state.activeDeviceId = deviceId;
-          renderOverview();
-          renderSummaryStats();
-          renderDetail();
-        });
-      });
-    }
-
-    function renderSummaryStats() {
-      let online = 0;
-      let offline = 0;
-      DEVICES.forEach(device => {
-        const status = state.status.get(device.id);
-        if (!status) return;
-        if (status.className === "online") online += 1;
-        if (status.className === "offline") offline += 1;
-      });
-
-      el.onlineCount.textContent = String(online);
-      el.offlineCount.textContent = String(offline);
-      el.focusName.textContent = getDevice(state.activeDeviceId)?.name || "--";
-      el.lastRefreshLabel.textContent = `最近刷新：${state.lastRefresh ? formatTime(state.lastRefresh) : "等待首次加载"}`;
-    }
-
-    function renderEmpty(message) {
-      el.metricGrid.innerHTML = `<div class="empty">${message}</div>`;
     }
 
     function renderDetail() {
@@ -1019,14 +1075,20 @@
       if (!device) return;
 
       const record = state.records.get(device.id);
-      const status = state.status.get(device.id) || { text: "待加载", className: "" };
+      const status = state.deviceStatus.get(device.id) || { text: "待加载", className: "" };
       const error = state.errors.get(device.id);
 
+      el.deviceTitle.textContent = device.name;
       el.detailType.textContent = device.typeLabel;
-      el.heroLabel.textContent = status.className === "online" ? "当前设备在线" : "当前设备状态";
-      el.heroTitle.textContent = device.name;
+      el.heroLabel.textContent = "当前设备状态";
+      el.heroStatus.textContent = status.text || "待加载";
+      el.heroStatus.style.color = status.className === "online"
+        ? "var(--accent-2)"
+        : status.className === "offline"
+          ? "var(--danger)"
+          : "var(--accent-3)";
       el.heroDesc.textContent = error || device.heroText;
-      el.uploadTime.textContent = record ? formatTime(record[device.timeKey]) : "--";
+      el.uploadTime.textContent = record ? formatTime(record[device.timeKey]) : "加载中";
       el.statusText.textContent = `状态：${status.text}${state.lastRefresh ? ` · 全局刷新于 ${formatTime(state.lastRefresh)}` : ""}`;
 
       if (!record) {
@@ -1036,12 +1098,13 @@
       }
 
       el.metricGrid.innerHTML = device.fields.map(field => `
-        <article class="metric ${field.type === "subform" ? "subform" : ""} ${device.id === "hardness" && (field.key === "N_1" || field.key === "N_2") ? "wide-compact" : ""}">
+        <article class="metric-card ${field.className || ""}">
           <div class="metric-label">${field.label}</div>
-          <div class="metric-value ${field.type === "subform" ? "subform" : ""}">${renderFieldValue(record[field.key], field)}</div>
+          <div class="metric-value">${escapeHtml(formatValue(record[field.key], field))}</div>
           <div class="metric-unit">${field.unit || ""}</div>
         </article>
       `).join("");
+
       renderSubformSection(device, record);
     }
 
@@ -1055,41 +1118,44 @@
       };
 
       const attempts = [
-        { "Content-Type": "application/json", "x-api-key": API_KEY },
-        { "Content-Type": "application/json", "api-key": API_KEY },
-        { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` }
+        { headers: { "Content-Type": "application/json", "x-api-key": API_KEY } },
+        { headers: { "Content-Type": "application/json", "api-key": API_KEY } },
+        { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` } }
       ];
 
-      let lastError = "请求失败";
+      let lastError = null;
 
-      for (const headers of attempts) {
+      for (const attempt of attempts) {
         try {
           const response = await fetch(device.apiUrl, {
             method: "POST",
-            headers,
+            headers: attempt.headers,
             body: JSON.stringify(body)
           });
+
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
           }
+
           const result = await response.json();
           const list = Array.isArray(result.data) ? result.data : [];
           if (!list.length) {
             throw new Error("接口返回为空");
           }
+
           return list[0];
         } catch (error) {
-          lastError = error.message || "请求失败";
+          lastError = error.message;
         }
       }
 
-      throw new Error(lastError);
+      throw new Error(lastError || "请求失败");
     }
 
     async function loadDevice(device) {
-      state.status.set(device.id, { text: "加载中", className: "loading" });
+      state.deviceStatus.set(device.id, { text: "加载中", className: "loading" });
       state.errors.delete(device.id);
-      renderOverview();
+      renderNav();
       renderSummaryStats();
       if (device.id === state.activeDeviceId) {
         renderDetail();
@@ -1098,14 +1164,14 @@
       try {
         const record = await fetchLatestRecord(device);
         state.records.set(device.id, record);
-        state.status.set(device.id, statusFromRecord(device, record));
+        state.deviceStatus.set(device.id, getStatusFromRecord(device, record));
       } catch (error) {
-        state.status.set(device.id, { text: "离线", className: "offline" });
+        state.deviceStatus.set(device.id, { text: "离线", className: "offline" });
         state.errors.set(device.id, `${device.name} 数据加载失败，请检查接口地址、鉴权配置或浏览器跨域策略。`);
         console.error(`${device.name} 数据加载失败:`, error.message);
       }
 
-      renderOverview();
+      renderNav();
       renderSummaryStats();
       if (device.id === state.activeDeviceId) {
         renderDetail();
@@ -1118,7 +1184,7 @@
       await Promise.all(DEVICES.map(device => loadDevice(device)));
     }
 
-    renderOverview();
+    renderNav();
     renderDetail();
     renderSummaryStats();
     refreshAll();
