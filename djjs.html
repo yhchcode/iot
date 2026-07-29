@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>鼎杰金属设备大屏</title>
+  <style>
+    :root {
+      --bg-1: #071018;
+      --bg-2: #091b28;
+      --bg-3: #102d3f;
+      --panel: rgba(8, 24, 38, 0.82);
+      --panel-strong: rgba(9, 31, 48, 0.94);
+      --line: rgba(117, 207, 255, 0.18);
+      --line-strong: rgba(117, 207, 255, 0.32);
+      --text: #eff8ff;
+      --muted: #8fb3cb;
+      --cyan: #67ecff;
+      --green: #7ef5a7;
+      --gold: #ffd97d;
+      --red: #ff8aa1;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at 15% 12%, rgba(103, 236, 255, 0.18), transparent 24%),
+        radial-gradient(circle at 82% 18%, rgba(126, 245, 167, 0.15), transparent 20%),
+        radial-gradient(circle at 50% 100%, rgba(255, 217, 125, 0.08), transparent 28%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2) 42%, var(--bg-3));
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      width: 32vw;
+      height: 32vw;
+      border-radius: 50%;
+      filter: blur(20px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      top: -14vw;
+      right: -12vw;
+      background: radial-gradient(circle, rgba(103, 236, 255, 0.18), transparent 66%);
+    }
+
+    body::after {
+      bottom: -16vw;
+      left: -10vw;
+      background: radial-gradient(circle, rgba(126, 245, 167, 0.12), transparent 70%);
+    }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: min(1680px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 18px 0 26px;
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%),
+        linear-gradient(135deg, rgba(103, 236, 255, 0.06), transparent 35%);
+      pointer-events: none;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+      padding: 22px 24px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(30px, 3.6vw, 44px);
+      letter-spacing: 0.14em;
+      font-weight: 700;
+      text-shadow: 0 0 24px rgba(103, 236, 255, 0.16);
+    }
+
+    .brand p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .headline {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(117, 207, 255, 0.14);
+      background: rgba(255, 255, 255, 0.03);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(190px, 1.4fr);
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(7, 27, 43, 0.7);
+      border: 1px solid rgba(117, 207, 255, 0.12);
+    }
+
+    .stat-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.68fr) minmax(0, 1.92fr);
+      gap: 18px;
+    }
+
+    .left-column,
+    .right-column {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.08em;
+    }
+
+    .panel-head small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .device-overview {
+      padding: 22px;
+    }
+
+    .device-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .device-card {
+      position: relative;
+      width: 100%;
+      padding: 18px 18px 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(117, 207, 255, 0.14);
+      background:
+        linear-gradient(140deg, rgba(103, 236, 255, 0.08), transparent 35%),
+        linear-gradient(180deg, rgba(12, 35, 53, 0.96), rgba(8, 24, 39, 0.84));
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .device-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--line-strong);
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .device-card.active {
+      border-color: rgba(103, 236, 255, 0.42);
+      background:
+        linear-gradient(140deg, rgba(103, 236, 255, 0.18), rgba(126, 245, 167, 0.08) 48%, transparent 78%),
+        linear-gradient(180deg, rgba(14, 41, 62, 0.98), rgba(10, 31, 48, 0.88));
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+    }
+
+    .device-top {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .device-name {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .device-kind {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
+      white-space: nowrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .status::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #7992a8;
+      box-shadow: 0 0 12px rgba(121, 146, 168, 0.4);
+    }
+
+    .status.online::before {
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(126, 245, 167, 0.48);
+    }
+
+    .status.offline::before {
+      background: var(--red);
+      box-shadow: 0 0 12px rgba(255, 138, 161, 0.45);
+    }
+
+    .status.loading::before {
+      background: var(--gold);
+      box-shadow: 0 0 12px rgba(255, 217, 125, 0.45);
+    }
+
+    .detail-panel {
+      padding: 22px;
+    }
+
+    .detail-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .hero-card,
+    .timeline-card {
+      padding: 18px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(103, 236, 255, 0.08), transparent 38%),
+        rgba(7, 26, 41, 0.68);
+      border: 1px solid rgba(117, 207, 255, 0.12);
+    }
+
+    .hero-card h3,
+    .timeline-card h3 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .hero-card strong {
+      display: block;
+      font-size: clamp(28px, 2.8vw, 38px);
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+
+    .hero-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 14px;
+    }
+
+    .timeline-card .time {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .timeline-card .sub {
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 13px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      min-height: 140px;
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(117, 207, 255, 0.12);
+      background:
+        radial-gradient(circle at top right, rgba(103, 236, 255, 0.14), transparent 36%),
+        linear-gradient(180deg, rgba(11, 32, 50, 0.96), rgba(7, 24, 39, 0.84));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .metric.wide-compact {
+      grid-column: span 2;
+      min-height: 96px;
+      padding: 14px 16px 12px;
+    }
+
+    .metric.wide-compact .metric-label {
+      min-height: auto;
+    }
+
+    .metric.wide-compact .metric-value {
+      margin-top: 8px;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
+    .metric.subform {
+      grid-column: span 2;
+      min-height: 220px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      min-height: 36px;
+    }
+
+    .metric-value {
+      margin-top: 10px;
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .metric-value.subform {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.7;
+      white-space: normal;
+    }
+
+    .subform-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .subform-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(117, 207, 255, 0.08);
+    }
+
+    .subform-item strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #c9efff;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .subform-item p {
+      margin: 0;
+      color: var(--text);
+    }
+
+    .subform-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 18px;
+    }
+
+    .subform-field {
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(117, 207, 255, 0.06);
+    }
+
+    .subform-field span {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .subform-field em {
+      display: block;
+      color: var(--text);
+      font-style: normal;
+      line-height: 1.65;
+      word-break: break-word;
+    }
+
+    .metric-unit {
+      margin-top: 8px;
+      color: #a8ddff;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+
+    .empty {
+      padding: 44px 20px;
+      border-radius: 24px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed rgba(117, 207, 255, 0.18);
+      background: rgba(7, 24, 39, 0.46);
+      line-height: 1.8;
+    }
+
+    .subform-panel {
+      display: none;
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(117, 207, 255, 0.12);
+      background:
+        linear-gradient(135deg, rgba(103, 236, 255, 0.08), transparent 40%),
+        rgba(7, 26, 41, 0.62);
+    }
+
+    .subform-panel.show {
+      display: block;
+    }
+
+    .subform-panel h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      letter-spacing: 0.06em;
+    }
+
+    .subform-panel small {
+      display: block;
+      margin-bottom: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    @media (max-width: 1320px) {
+      .main,
+      .detail-hero,
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 960px) {
+      .stats,
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .subform-fields {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .screen {
+        width: min(100vw - 16px, 100%);
+        padding-top: 10px;
+      }
+
+      .topbar,
+      .device-overview,
+      .detail-panel {
+        padding: 18px;
+      }
+
+      .stats,
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="panel topbar">
+      <section class="brand">
+        <h1>鼎杰金属设备大屏</h1>
+        <p>DINGJIE METAL · MACHINE DATA CENTER</p>
+        <div class="headline">
+          <span class="badge" id="lastRefreshLabel">最近刷新：等待首次加载</span>
+        </div>
+      </section>
+      <section class="stats">
+        <div class="stat-card">
+          <span>接入设备</span>
+          <strong id="deviceCount">5</strong>
+        </div>
+        <div class="stat-card">
+          <span>在线设备</span>
+          <strong id="onlineCount">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>离线设备</span>
+          <strong id="offlineCount">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>当前关注</span>
+          <strong id="focusName">切割系统</strong>
+        </div>
+      </section>
+    </header>
+
+    <main class="main">
+      <section class="left-column">
+        <div class="panel device-overview">
+          <div class="panel-head">
+            <div>
+              <h2>设备总览</h2>
+            </div>
+          </div>
+          <div class="device-list" id="deviceList"></div>
+        </div>
+      </section>
+
+      <section class="right-column">
+        <div class="panel detail-panel">
+          <div class="panel-head">
+            <div>
+              <h2>设备明细</h2>
+            </div>
+            <small id="detailType">切割设备</small>
+          </div>
+
+          <div class="detail-hero">
+            <article class="hero-card">
+              <h3 id="heroLabel">当前设备</h3>
+              <strong id="heroTitle">切割系统</strong>
+              <p id="heroDesc">正在加载设备最新数据。</p>
+            </article>
+            <article class="timeline-card">
+              <h3>上传信息</h3>
+              <div class="time" id="uploadTime">加载中</div>
+              <div class="sub" id="statusText">状态：刷新中</div>
+            </article>
+          </div>
+
+          <div class="metrics" id="metricGrid"></div>
+          <section class="subform-panel" id="subformPanel">
+            <h3 id="subformTitle">产品质检明细</h3>
+            <small id="subformHint"></small>
+            <div id="subformContent"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_KEY = "iaBfJmywpa87wydVAEzXFc2PdXImdfNv";
+    const REFRESH_INTERVAL = 60 * 1000;
+    const ONLINE_WINDOW_MS = 30 * 60 * 1000;
+
+    const DEVICES = [
+      {
+        id: "cutting-system",
+        name: "切割系统",
+        typeLabel: "激光切割",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/5a83f14071963bebe043663c/data",
+        timeKey: "time",
+        summary: ["N_16", "N_17", "N_2"],
+        heroText: "聚焦加工效率、切割速度与当前加工文件。",
+        fields: [
+          { key: "N_14", label: "加工图纸名称", unit: "", type: "text" },
+          { key: "N_1", label: "开气时长", unit: "s", type: "number" },
+          { key: "N_2", label: "穿孔数", unit: "个", type: "number" },
+          { key: "N_3", label: "空移长度", unit: "mm", type: "number" },
+          { key: "N_4", label: "切割长度", unit: "mm", type: "number" },
+          { key: "N_5", label: "空闲时长", unit: "s", type: "number" },
+          { key: "N_6", label: "切割时长", unit: "s", type: "number" },
+          { key: "N_7", label: "开光时长", unit: "s", type: "number" },
+          { key: "N_8", label: "峰值功率", unit: "W", type: "number" },
+          { key: "N_9", label: "跟随高度(设定值)", unit: "mm", type: "number" },
+          { key: "N_10", label: "PWM占空比", unit: "%", type: "number" },
+          { key: "N_11", label: "切割气压", unit: "BAR", type: "number" },
+          { key: "N_12", label: "气体类型", unit: "", type: "text" },
+          { key: "N_13", label: "频率", unit: "Hz", type: "number" },
+          { key: "N_15", label: "激光功率", unit: "W", type: "number" },
+          { key: "N_16", label: "加工进度", unit: "%", type: "number" },
+          { key: "N_17", label: "切割速度", unit: "m/min", type: "number" },
+          { key: "N_18", label: "加工时长", unit: "", type: "text" },
+          { key: "N_19", label: "加工时长(h)", unit: "h", type: "number" },
+          { key: "N_20", label: "Z轴", unit: "mm", type: "number" },
+          { key: "N_21", label: "Y轴", unit: "mm", type: "number" },
+          { key: "N_22", label: "X轴", unit: "mm", type: "number" }
+        ]
+      },
+      {
+        id: "drill-1",
+        name: "钻孔机1",
+        typeLabel: "数控钻孔",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/503d2d2dbe9ea2cd57f70b90/data",
+        timeKey: "Datetime",
+        summary: ["N_1", "N_2", "N_9"],
+        heroText: "重点查看钻孔完成量、总加工量与当前坐标位置。",
+        fields: [
+          { key: "N_1", label: "已完成数量", unit: "个", type: "number" },
+          { key: "N_2", label: "总加工数量", unit: "个", type: "number" },
+          { key: "N_4", label: "Y轴程序值", unit: "mm", type: "number" },
+          { key: "N_5", label: "Y轴当前值", unit: "mm", type: "number" },
+          { key: "N_6", label: "X轴程序值", unit: "mm", type: "number" },
+          { key: "N_7", label: "X轴当前值", unit: "mm", type: "number" },
+          { key: "N_9", label: "加工孔数", unit: "个", type: "number" },
+          { key: "N_3", label: "已加工", unit: "步", type: "number" },
+          { key: "N_8", label: "总步数", unit: "步", type: "number" }
+        ]
+      },
+      {
+        id: "drill-2",
+        name: "钻孔机2",
+        typeLabel: "数控钻孔",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/5785323f70a553a2f49b333a/data",
+        timeKey: "Datetime",
+        summary: ["N_2", "N_3", "N_8"],
+        heroText: "适合观察第二台钻孔机的孔数进度和轴位置反馈。",
+        fields: [
+          { key: "N_2", label: "已加工孔数", unit: "个", type: "number" },
+          { key: "N_4", label: "Y轴程序值", unit: "mm", type: "number" },
+          { key: "N_5", label: "Y轴当前值", unit: "mm", type: "number" },
+          { key: "N_6", label: "X轴程序值", unit: "mm", type: "number" },
+          { key: "N_7", label: "X轴当前值", unit: "mm", type: "number" },
+          { key: "N_3", label: "总孔数", unit: "步", type: "number" },
+          { key: "N_8", label: "已加工", unit: "步", type: "number" }
+        ]
+      },
+      {
+        id: "plasma",
+        name: "等离子切割机",
+        typeLabel: "等离子切割",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/56ca1916118a676e47c44867/data",
+        timeKey: "Datetime",
+        summary: ["N_8", "N_5", "N_12"],
+        heroText: "覆盖运行状态、切割距离、速度与文件名等关键字段。",
+        fields: [
+          { key: "N_1", label: "割缝", unit: "mm", type: "number" },
+          { key: "N_2", label: "运行时间", unit: "h:m:s", type: "text" },
+          { key: "N_3", label: "切割时间", unit: "h:m:s", type: "text" },
+          { key: "N_4", label: "切割距离", unit: "m", type: "number" },
+          { key: "N_5", label: "穿孔数", unit: "个", type: "number" },
+          { key: "N_6", label: "切割速度", unit: "mm/min", type: "number" },
+          { key: "N_7", label: "文件名", unit: "", type: "text" },
+          { key: "N_8", label: "运行状态", unit: "", type: "text" },
+          { key: "N_9", label: "定长距离", unit: "mm", type: "number" },
+          { key: "N_10", label: "手动方式", unit: "", type: "text" },
+          { key: "N_11", label: "手动速度", unit: "mm/min", type: "number" },
+          { key: "N_12", label: "当前速度", unit: "mm/min", type: "number" }
+        ]
+      },
+      {
+        id: "hardness",
+        name: "硬度质检仪",
+        typeLabel: "品质检测",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/513bc19a25c7b90d9b8935b8/entry/532d762b83b7094f6c03c536/data",
+        timeKey: "N_3",
+        summary: ["N_12", "N_5", "N_6"],
+        heroText: "跟踪质检单据、产品信息和 5 次测量结果的平均值。",
+        subformKey: "N_4",
+        subformTitle: "产品质检明细",
+        subformAliases: {
+          N_1: "报工单号",
+          N_2: "计划单号",
+          N_3: "上传时间",
+          N_5: "产品编号",
+          N_6: "产品名称",
+          N_7: "测量值1",
+          N_8: "测量值2",
+          N_9: "测量值3",
+          N_10: "测量值4",
+          N_11: "测量值5",
+          N_12: "平均值"
+        },
+        fields: [
+          { key: "N_1", label: "报工单号", unit: "", type: "text" },
+          { key: "N_2", label: "计划单号", unit: "", type: "text" }
+        ]
+      }
+    ];
+
+    const state = {
+      activeDeviceId: DEVICES[0].id,
+      records: new Map(),
+      status: new Map(),
+      errors: new Map(),
+      lastRefresh: null
+    };
+
+    const el = {
+      deviceCount: document.getElementById("deviceCount"),
+      onlineCount: document.getElementById("onlineCount"),
+      offlineCount: document.getElementById("offlineCount"),
+      focusName: document.getElementById("focusName"),
+      lastRefreshLabel: document.getElementById("lastRefreshLabel"),
+      deviceList: document.getElementById("deviceList"),
+      detailType: document.getElementById("detailType"),
+      heroLabel: document.getElementById("heroLabel"),
+      heroTitle: document.getElementById("heroTitle"),
+      heroDesc: document.getElementById("heroDesc"),
+      uploadTime: document.getElementById("uploadTime"),
+      statusText: document.getElementById("statusText"),
+      metricGrid: document.getElementById("metricGrid"),
+      subformPanel: document.getElementById("subformPanel"),
+      subformTitle: document.getElementById("subformTitle"),
+      subformHint: document.getElementById("subformHint"),
+      subformContent: document.getElementById("subformContent")
+    };
+
+    el.deviceCount.textContent = String(DEVICES.length);
+
+    function formatValue(value, field) {
+      if (value === null || value === undefined || value === "") return "--";
+      if (field.type === "subform") {
+        if (Array.isArray(value)) return `${value.length} 条`;
+        if (typeof value === "object") return "1 条";
+        return String(value);
+      }
+      if (field.type === "number") {
+        const num = Number(value);
+        if (Number.isNaN(num)) return String(value);
+        return Math.abs(num) >= 1000
+          ? num.toLocaleString("zh-CN", { maximumFractionDigits: 2 })
+          : num.toLocaleString("zh-CN", { maximumFractionDigits: 3 });
+      }
+      return String(value);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function flattenObjectEntries(input, prefix = "") {
+      if (!input || typeof input !== "object" || Array.isArray(input)) return [];
+      return Object.entries(input).flatMap(([key, value]) => {
+        const nextKey = prefix ? `${prefix}.${key}` : key;
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+          return flattenObjectEntries(value, nextKey);
+        }
+        if (Array.isArray(value)) {
+          return [[nextKey, value.map(item => typeof item === "object" ? JSON.stringify(item) : String(item)).join("，")]];
+        }
+        return [[nextKey, value]];
+      });
+    }
+
+    function getFieldAlias(device, key) {
+      if (device.subformAliases?.[key]) return device.subformAliases[key];
+      const field = device.fields.find(item => item.key === key);
+      if (field?.label) return field.label;
+      if (key === device.timeKey) return "上传时间";
+      return key;
+    }
+
+    function normalizeSubformRow(row) {
+      if (!row || typeof row !== "object") return {};
+      if (row.data && typeof row.data === "object" && !Array.isArray(row.data)) {
+        return row.data;
+      }
+      return row;
+    }
+
+    function renderSubformValue(device, value) {
+      const rows = Array.isArray(value) ? value : (value && typeof value === "object" ? [value] : []);
+      if (!rows.length) return '<div class="empty">暂无子表数据</div>';
+
+      const ignoredKeys = new Set([
+        "id",
+        "appId",
+        "app_id",
+        "entryId",
+        "entry_id",
+        "data_id",
+        "_id",
+        "creator",
+        "updater",
+        "createTime",
+        "updateTime",
+        "deleteTime",
+        "flowState",
+        "flowstate"
+      ]);
+
+      return `
+        <div class="subform-list">
+          ${rows.slice(0, 5).map((row, index) => {
+            const entries = flattenObjectEntries(normalizeSubformRow(row)).filter(([key, itemValue]) => {
+              const leafKey = key.split(".").pop();
+              return !ignoredKeys.has(leafKey) && itemValue !== null && itemValue !== undefined && itemValue !== "";
+            });
+            if (!entries.length) {
+              return `
+                <div class="subform-item">
+                  <strong>明细 ${index + 1}</strong>
+                  <p>无可展示字段</p>
+                </div>
+              `;
+            }
+            return `
+              <div class="subform-item">
+                <strong>明细 ${index + 1}</strong>
+                <div class="subform-fields">${entries.slice(0, 12).map(([key, itemValue]) => {
+                  const leafKey = key.split(".").pop();
+                  if (/id$/i.test(leafKey)) return "";
+                  return `
+                    <div class="subform-field">
+                      <span>${escapeHtml(getFieldAlias(device, leafKey))}</span>
+                      <em>${escapeHtml(itemValue)}</em>
+                    </div>
+                  `;
+                }).join("")}</div>
+              </div>
+            `;
+          }).join("")}
+          ${rows.length > 5 ? `<div class="subform-item"><p>其余 ${rows.length - 5} 条明细未展开</p></div>` : ""}
+        </div>
+      `;
+    }
+
+    function renderFieldValue(value, field) {
+      if (field.type === "subform") {
+        return renderSubformValue(getDevice(state.activeDeviceId), value);
+      }
+      return escapeHtml(formatValue(value, field));
+    }
+
+    function renderSubformSection(device, record) {
+      const subformKey = device.subformKey;
+      if (!subformKey) {
+        el.subformPanel.classList.remove("show");
+        el.subformContent.innerHTML = "";
+        return;
+      }
+
+      el.subformTitle.textContent = device.subformTitle || "子表明细";
+      el.subformContent.innerHTML = renderSubformValue(device, record?.[subformKey]);
+      el.subformPanel.classList.add("show");
+    }
+
+    function formatTime(value) {
+      if (!value) return "--";
+      const date = new Date(String(value).replace(/-/g, "/"));
+      if (Number.isNaN(date.getTime())) return String(value);
+      const datePart = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+      ].join("-");
+      const timePart = [
+        String(date.getHours()).padStart(2, "0"),
+        String(date.getMinutes()).padStart(2, "0"),
+        String(date.getSeconds()).padStart(2, "0")
+      ].join(":");
+      return `${datePart} ${timePart}`;
+    }
+
+    function parseTime(value) {
+      if (!value) return null;
+      const date = new Date(String(value).replace(/-/g, "/"));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function statusFromRecord(device, record) {
+      const uploadTime = parseTime(record?.[device.timeKey]);
+      if (!uploadTime) {
+        return { text: "离线", className: "offline" };
+      }
+      const online = Date.now() - uploadTime.getTime() <= ONLINE_WINDOW_MS;
+      return {
+        text: online ? "在线" : "离线",
+        className: online ? "online" : "offline"
+      };
+    }
+
+    function getDevice(deviceId) {
+      return DEVICES.find(item => item.id === deviceId);
+    }
+
+    function renderOverview() {
+      const activeId = state.activeDeviceId;
+      el.deviceList.innerHTML = DEVICES.map(device => {
+        const status = state.status.get(device.id) || { text: "待加载", className: "" };
+        return `
+          <button class="device-card ${device.id === activeId ? "active" : ""}" data-device-id="${device.id}" type="button">
+            <div class="device-top">
+              <div>
+                <div class="device-name">${device.name}</div>
+                <div class="device-kind">${device.typeLabel}</div>
+              </div>
+              <span class="status ${status.className}">${status.text}</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      el.deviceList.querySelectorAll(".device-card").forEach(button => {
+        button.addEventListener("click", () => {
+          const { deviceId } = button.dataset;
+          if (!deviceId || deviceId === state.activeDeviceId) return;
+          state.activeDeviceId = deviceId;
+          renderOverview();
+          renderSummaryStats();
+          renderDetail();
+        });
+      });
+    }
+
+    function renderSummaryStats() {
+      let online = 0;
+      let offline = 0;
+      DEVICES.forEach(device => {
+        const status = state.status.get(device.id);
+        if (!status) return;
+        if (status.className === "online") online += 1;
+        if (status.className === "offline") offline += 1;
+      });
+
+      el.onlineCount.textContent = String(online);
+      el.offlineCount.textContent = String(offline);
+      el.focusName.textContent = getDevice(state.activeDeviceId)?.name || "--";
+      el.lastRefreshLabel.textContent = `最近刷新：${state.lastRefresh ? formatTime(state.lastRefresh) : "等待首次加载"}`;
+    }
+
+    function renderEmpty(message) {
+      el.metricGrid.innerHTML = `<div class="empty">${message}</div>`;
+    }
+
+    function renderDetail() {
+      const device = getDevice(state.activeDeviceId);
+      if (!device) return;
+
+      const record = state.records.get(device.id);
+      const status = state.status.get(device.id) || { text: "待加载", className: "" };
+      const error = state.errors.get(device.id);
+
+      el.detailType.textContent = device.typeLabel;
+      el.heroLabel.textContent = status.className === "online" ? "当前设备在线" : "当前设备状态";
+      el.heroTitle.textContent = device.name;
+      el.heroDesc.textContent = error || device.heroText;
+      el.uploadTime.textContent = record ? formatTime(record[device.timeKey]) : "--";
+      el.statusText.textContent = `状态：${status.text}${state.lastRefresh ? ` · 全局刷新于 ${formatTime(state.lastRefresh)}` : ""}`;
+
+      if (!record) {
+        renderEmpty("当前设备暂无可展示数据。");
+        renderSubformSection(device, null);
+        return;
+      }
+
+      el.metricGrid.innerHTML = device.fields.map(field => `
+        <article class="metric ${field.type === "subform" ? "subform" : ""} ${device.id === "hardness" && (field.key === "N_1" || field.key === "N_2") ? "wide-compact" : ""}">
+          <div class="metric-label">${field.label}</div>
+          <div class="metric-value ${field.type === "subform" ? "subform" : ""}">${renderFieldValue(record[field.key], field)}</div>
+          <div class="metric-unit">${field.unit || ""}</div>
+        </article>
+      `).join("");
+      renderSubformSection(device, record);
+    }
+
+    async function fetchLatestRecord(device) {
+      const body = {
+        limit: 1,
+        skip: 0,
+        sort: {
+          [device.timeKey]: "desc"
+        }
+      };
+
+      const attempts = [
+        { "Content-Type": "application/json", "x-api-key": API_KEY },
+        { "Content-Type": "application/json", "api-key": API_KEY },
+        { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` }
+      ];
+
+      let lastError = "请求失败";
+
+      for (const headers of attempts) {
+        try {
+          const response = await fetch(device.apiUrl, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body)
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const result = await response.json();
+          const list = Array.isArray(result.data) ? result.data : [];
+          if (!list.length) {
+            throw new Error("接口返回为空");
+          }
+          return list[0];
+        } catch (error) {
+          lastError = error.message || "请求失败";
+        }
+      }
+
+      throw new Error(lastError);
+    }
+
+    async function loadDevice(device) {
+      state.status.set(device.id, { text: "加载中", className: "loading" });
+      state.errors.delete(device.id);
+      renderOverview();
+      renderSummaryStats();
+      if (device.id === state.activeDeviceId) {
+        renderDetail();
+      }
+
+      try {
+        const record = await fetchLatestRecord(device);
+        state.records.set(device.id, record);
+        state.status.set(device.id, statusFromRecord(device, record));
+      } catch (error) {
+        state.status.set(device.id, { text: "离线", className: "offline" });
+        state.errors.set(device.id, `${device.name} 数据加载失败，请检查接口地址、鉴权配置或浏览器跨域策略。`);
+        console.error(`${device.name} 数据加载失败:`, error.message);
+      }
+
+      renderOverview();
+      renderSummaryStats();
+      if (device.id === state.activeDeviceId) {
+        renderDetail();
+      }
+    }
+
+    async function refreshAll() {
+      state.lastRefresh = new Date();
+      renderSummaryStats();
+      await Promise.all(DEVICES.map(device => loadDevice(device)));
+    }
+
+    renderOverview();
+    renderDetail();
+    renderSummaryStats();
+    refreshAll();
+    setInterval(refreshAll, REFRESH_INTERVAL);
+  </script>
+</body>
+</html>
