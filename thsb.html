@@ -336,6 +336,10 @@
       min-width: min(360px, 100%);
     }
 
+    .statusbar.three-cols {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .status-card {
       padding: 14px 16px;
       border-radius: 18px;
@@ -650,6 +654,10 @@
               <span>设备状态</span>
               <strong id="systemStatus">正在连接</strong>
             </div>
+            <div class="status-card" id="dataCountCard" hidden>
+              <span>产品测试总量</span>
+              <strong id="dataCount">--</strong>
+            </div>
           </div>
         </div>
         <div class="metric-grid" id="metricGrid"></div>
@@ -836,6 +844,9 @@
     const el = {
       uploadTime: document.getElementById("uploadTime"),
       systemStatus: document.getElementById("systemStatus"),
+      statusbar: document.querySelector(".statusbar"),
+      dataCountCard: document.getElementById("dataCountCard"),
+      dataCount: document.getElementById("dataCount"),
       deviceNav: document.getElementById("deviceNav"),
       deviceTitle: document.getElementById("deviceTitle"),
       metricGrid: document.getElementById("metricGrid"),
@@ -897,6 +908,25 @@
       return { text: isOnline ? "在线" : "离线", className: isOnline ? "online" : "offline" };
     }
 
+    function getDataVolume(device, dataCount) {
+      if (device.template !== "test_station") {
+        return "--";
+      }
+
+      if (typeof dataCount !== "number" || Number.isNaN(dataCount)) {
+        return "--";
+      }
+
+      return `${dataCount} `;
+    }
+
+    function updateStatusbarLayout(device, dataCount) {
+      const isTestStation = device.template === "test_station";
+      el.statusbar.classList.toggle("three-cols", isTestStation);
+      el.dataCountCard.hidden = !isTestStation;
+      el.dataCount.textContent = isTestStation ? getDataVolume(device, dataCount) : "--";
+    }
+
     function renderNav() {
       el.deviceNav.innerHTML = DEVICES.map(device => `
         <button class="nav-item ${device.id === state.activeDeviceId ? "active" : ""}" data-device-id="${device.id}" type="button">
@@ -916,7 +946,8 @@
       });
     }
 
-    function renderMetricCards(fields, record) {
+    function renderMetricCards(fields, record, dataCount) {
+      updateStatusbarLayout(getActiveDevice(), dataCount);
       el.metricGrid.hidden = false;
       el.detailView.hidden = true;
       el.metricGrid.innerHTML = fields.map(item => `
@@ -992,7 +1023,8 @@
       `;
     }
 
-    function renderTestStationMetrics(template, record) {
+    function renderTestStationMetrics(template, record, dataCount) {
+      updateStatusbarLayout(getActiveDevice(), dataCount);
       el.metricGrid.hidden = true;
       el.detailView.hidden = false;
 
@@ -1041,10 +1073,10 @@
       el.metricGrid.innerHTML = "";
     }
 
-    function renderMetrics(device, record) {
+    function renderMetrics(device, record, dataCount) {
       const template = TEMPLATES[device.template];
       if (template.mode === "subtables") {
-        renderTestStationMetrics(template, record);
+        renderTestStationMetrics(template, record, dataCount);
         return;
       }
 
@@ -1056,12 +1088,14 @@
           <div class="metric-unit">${item.unit || ""}</div>
         </article>
       `).join("");
+      updateStatusbarLayout(device, dataCount);
       el.metricGrid.hidden = false;
       el.detailView.hidden = true;
       el.detailView.innerHTML = "";
     }
 
     function renderEmpty(message) {
+      updateStatusbarLayout(getActiveDevice(), null);
       el.metricGrid.hidden = false;
       el.detailView.hidden = true;
       el.metricGrid.innerHTML = `<div class="empty-state">${message}</div>`;
@@ -1071,7 +1105,7 @@
     async function fetchLatestRecord(device) {
       const template = TEMPLATES[device.template];
       const body = {
-        limit: 1,
+        limit: device.template === "test_station" ? 300 : 1,
         skip: 0,
         sort: {
           [template.timeKey]: "desc"
@@ -1096,7 +1130,10 @@
           const result = await response.json();
           const list = Array.isArray(result.data) ? result.data : [];
           if (!list.length) throw new Error("接口返回为空");
-          return list[0];
+          return {
+            record: list[0],
+            dataCount: list.length
+          };
         } catch (error) {
           lastError = error.message;
         }
@@ -1108,6 +1145,7 @@
       const device = getActiveDevice();
       const template = TEMPLATES[device.template];
       el.deviceTitle.textContent = device.name;
+      updateStatusbarLayout(device, null);
       el.systemStatus.textContent = "刷新中";
       el.systemStatus.style.color = "#ffcf5a";
       el.uploadTime.textContent = "加载中";
@@ -1116,10 +1154,10 @@
       renderEmpty(`正在加载${device.name}最新数据...`);
 
       try {
-        const record = await fetchLatestRecord(device);
+        const { record, dataCount } = await fetchLatestRecord(device);
         const status = getStatusFromRecord(device, record);
         state.deviceStatus.set(device.id, status);
-        renderMetrics(device, record);
+        renderMetrics(device, record, dataCount);
         renderNav();
         el.uploadTime.textContent = formatTime(record[template.timeKey]);
         el.systemStatus.textContent = status.text;
