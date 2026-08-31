@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>腹部垫质检不合格分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .screen {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        .topbar {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .topbar h1 {
+            font-size: 24px;
+            color: #1a1a2e;
+        }
+        .topbar p {
+            color: #999;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        .topbar .refresh-btn {
+            padding: 8px 24px;
+            background: #4f6ef7;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .topbar .refresh-btn:hover {
+            background: #3a56d4;
+        }
+        .topbar .refresh-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .topbar .status {
+            font-size: 13px;
+            color: #999;
+            margin-right: 12px;
+        }
+        .topbar .status.online {
+            color: #22b573;
+        }
+        .topbar .status.offline {
+            color: #f55753;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #eef0f5;
+        }
+        .stat-card .label {
+            font-size: 13px;
+            color: #999;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-top: 2px;
+        }
+        .stat-card .value.green {
+            color: #22b573;
+        }
+        .stat-card .value.red {
+            color: #f55753;
+        }
+        .stat-card .value.orange {
+            color: #f5a623;
+        }
+        .stat-card .value.blue {
+            color: #4f6ef7;
+        }
+        .row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #eef0f5;
+        }
+        .card .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+        .card .card-title .badge {
+            background: #4f6ef7;
+            color: #fff;
+            font-size: 12px;
+            border-radius: 20px;
+            padding: 0 12px;
+            margin-left: 8px;
+            font-weight: 400;
+        }
+        .card .card-title .sort-hint {
+            color: #999;
+            font-size: 12px;
+            font-weight: 400;
+            margin-left: 8px;
+        }
+        .chart-box {
+            width: 100%;
+            height: 280px;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .table-wrap-full {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        table th {
+            background: #f7f8fc;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 2px solid #e8e8e8;
+            white-space: nowrap;
+            font-weight: 600;
+            color: #555;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        table tr:hover td {
+            background: #fafbff;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .tag.pass {
+            background: #e6f7ed;
+            color: #22b573;
+        }
+        .tag.fail {
+            background: #ffe8e8;
+            color: #f55753;
+        }
+        .tag.defect {
+            background: #fff3e0;
+            color: #e67e22;
+            font-weight: 400;
+            margin: 1px 4px 1px 0;
+            display: inline-block;
+            padding: 1px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .empty-state {
+            text-align: center;
+            color: #bbb;
+            padding: 40px 0;
+            font-size: 15px;
+        }
+        .footer {
+            text-align: center;
+            color: #ccc;
+            font-size: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #eee;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-box input {
+            padding: 8px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+            outline: none;
+            transition: 0.3s;
+        }
+        .search-box input:focus {
+            border-color: #4f6ef7;
+            box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
+        }
+        .search-box .search-hint {
+            color: #999;
+            font-size: 13px;
+        }
+        .search-box .clear-btn {
+            padding: 6px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+            transition: 0.3s;
+        }
+        .search-box .clear-btn:hover {
+            background: #eee;
+        }
+        .highlight {
+            background: #fff3cd !important;
+        }
+        @media (max-width: 1000px) {
+            .row-2col {
+                grid-template-columns: 1fr;
+            }
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .search-box {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="screen">
+        <header class="topbar">
+            <div>
+                <h1>📋 腹部垫质检不合格分析</h1>
+                <p>数据来自 API · 自动拉取全部记录进行不合格分析</p>
+            </div>
+            <div>
+                <span class="status" id="statusText">● 就绪</span>
+                <button class="refresh-btn" id="refreshBtn">🔄 刷新数据</button>
+            </div>
+        </header>
+
+        <div class="stats" id="statsArea">
+            <div class="stat-card"><div class="label">总记录数</div><div class="value" id="totalCount">-</div></div>
+            <div class="stat-card"><div class="label">总订单数</div><div class="value blue" id="orderCount">-</div></div>
+            <div class="stat-card"><div class="label">合格记录</div><div class="value green" id="passCount">-</div></div>
+            <div class="stat-card"><div class="label">不合格记录</div><div class="value red" id="failCount">-</div></div>
+            <div class="stat-card"><div class="label">合格率</div><div class="value orange" id="passRate">-</div></div>
+        </div>
+
+        <div class="row-2col">
+            <div class="card">
+                <div class="card-title">📊 缺陷分布 <span class="badge">按类型</span></div>
+                <div class="chart-box" id="chartDefect"></div>
+            </div>
+            <div class="card">
+                <div class="card-title">❌ 不合格明细 <span class="badge">共 <span id="failCountBadge">0</span> 条</span><span class="sort-hint">↓ 最新在前</span></div>
+                <div class="search-box">
+                    <input type="text" id="failSearchInput" placeholder="搜索订单号或工号..." />
+                    <button class="clear-btn" id="failClearBtn">清除</button>
+                    <span class="search-hint" id="failResultHint">共 0 条</span>
+                </div>
+                <div class="table-wrap" id="failTable">
+                    <div class="empty-state">点击「刷新数据」加载</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📊 各订单统计 <span class="badge">按订单</span><span class="sort-hint">↓ 最新在前</span></div>
+            <div class="search-box">
+                <input type="text" id="orderSearchInput" placeholder="搜索订单号..." />
+                <button class="clear-btn" id="orderClearBtn">清除</button>
+                <span class="search-hint" id="orderResultHint">共 0 个订单</span>
+            </div>
+            <div class="table-wrap-full" id="orderTable">
+                <div class="empty-state">点击「刷新数据」加载</div>
+            </div>
+        </div>
+
+        <div class="footer">数据通过 API 实时获取 · 点击「刷新数据」拉取最新数据</div>
+    </div>
+
+    <script>
+        // ================================================================
+        // 配置区
+        // ================================================================
+
+        const API_KEY = '37x5cCwMcDtqmnuuKQe2Xfakg7Ez5GcM';
+        const API_URL = 'https://shurui.online-office.net/openapi/v1/app/564ba6f1503200052f825d8c/entry/5f1f65c094001fb411d1b1ad/data';
+
+        // ================================================================
+        // DOM 引用
+        // ================================================================
+
+        const el = {
+            total: document.getElementById('totalCount'),
+            orderCount: document.getElementById('orderCount'),
+            pass: document.getElementById('passCount'),
+            fail: document.getElementById('failCount'),
+            rate: document.getElementById('passRate'),
+            failBadge: document.getElementById('failCountBadge'),
+            chart: document.getElementById('chartDefect'),
+            failTable: document.getElementById('failTable'),
+            orderTable: document.getElementById('orderTable'),
+            failSearch: document.getElementById('failSearchInput'),
+            failClear: document.getElementById('failClearBtn'),
+            failHint: document.getElementById('failResultHint'),
+            orderSearch: document.getElementById('orderSearchInput'),
+            orderClear: document.getElementById('orderClearBtn'),
+            orderHint: document.getElementById('orderResultHint'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            statusText: document.getElementById('statusText')
+        };
+
+        let cachedFailList = [];
+        let cachedOrderList = [];
+        let isLoading = false;
+
+        // ================================================================
+        // API 请求（照搬您同事的写法）
+        // ================================================================
+
+        async function fetchAllRecords() {
+            const body = {
+                limit: 500,
+                skip: 0,
+                sort: {
+                    '_widget_1788051924801': 'desc'
+                }
+            };
+
+            // 三种鉴权方式轮询
+            const attempts = [
+                { headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY } },
+                { headers: { 'Content-Type': 'application/json', 'api-key': API_KEY } },
+                { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` } }
+            ];
+
+            let lastError = null;
+
+            for (const attempt of attempts) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: attempt.headers,
+                        body: JSON.stringify(body)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    console.log('API 返回:', result);
+
+                    // 取 result.data
+                    const list = Array.isArray(result.data) ? result.data : [];
+                    if (!list.length) {
+                        throw new Error('接口返回为空');
+                    }
+
+                    return list;
+                } catch (error) {
+                    lastError = error.message;
+                }
+            }
+
+            throw new Error(lastError || '请求失败');
+        }
+
+        // ================================================================
+        // 解析数据
+        // ================================================================
+
+        function analyzeRecords(records) {
+            const results = [];
+
+            records.forEach(order => {
+                const orderId = String(order['_widget_1788051924729'] || '').trim();
+                const orderDate = String(order['_widget_1788051924801'] || '').trim();
+
+                // 子表单（检验明细）
+                const subRows = order['_widget_1788051924873'] || [];
+                if (!Array.isArray(subRows)) return;
+
+                subRows.forEach(row => {
+                    const worker = String(row['_widget_1788051924917'] || '').trim();
+                    if (!worker) return;
+
+                    const conclusion = String(row['_widget_1788052463629'] || '').trim().toUpperCase();
+
+                    // 缺陷字段映射
+                    const defectMap = {
+                        '断附线': '_widget_1788051925835',
+                        '≥0.5的未剪线头': '_widget_1788051926513',
+                        '蓝带头': '_widget_1788051927698',
+                        '异纤': '_widget_1788051927536',
+                        '小蓝点黑点': '_widget_1788051927383',
+                        '毛角毛边': '_widget_1788051927239',
+                        '漏缝掉层': '_widget_1788051927104',
+                        '破洞': '_widget_1788051926978',
+                        '钡片外露': '_widget_1788051926861',
+                        '兰带与钡片错位': '_widget_1788051926753',
+                        '无钡片/钡片脱落': '_widget_1788051926579',
+                        '毛发昆虫': '_widget_1788051926654',
+                        '严重外来物': '_widget_1788051930790',
+                        '片状油污血迹': '_widget_1788051930610'
+                    };
+
+                    const defects = [];
+                    Object.keys(defectMap).forEach(name => {
+                        const key = defectMap[name];
+                        if (row[key] !== undefined && row[key] !== null) {
+                            let val = row[key];
+                            if (typeof val === 'boolean') val = val ? 1 : 0;
+                            else if (typeof val === 'string') val = parseInt(val) || 0;
+                            else if (typeof val !== 'number') val = 0;
+                            if (val > 0) {
+                                defects.push({ name, count: val });
+                            }
+                        }
+                    });
+
+                    results.push({
+                        order: orderId,
+                        date: orderDate,
+                        worker: worker,
+                        conclusion: conclusion,
+                        defects: defects,
+                        raw: row,
+                        isFail: conclusion === 'N' || conclusion === '不合格'
+                    });
+                });
+            });
+
+            return results;
+        }
+
+        // ================================================================
+        // 加载数据
+        // ================================================================
+
+        async function loadData() {
+            if (isLoading) return;
+            isLoading = true;
+            el.refreshBtn.disabled = true;
+            el.refreshBtn.textContent = '⏳ 加载中...';
+            el.statusText.textContent = '● 加载中...';
+            el.statusText.className = 'status';
+
+            try {
+                const records = await fetchAllRecords();
+                console.log('API返回记录数:', records.length);
+
+                const parsed = analyzeRecords(records);
+                console.log('解析后明细数:', parsed.length);
+
+                if (parsed.length === 0) {
+                    el.statusText.textContent = '● 无数据';
+                    el.statusText.className = 'status offline';
+                    el.failTable.innerHTML = '<div class="empty-state">⚠️ 无数据</div>';
+                    return;
+                }
+
+                const valid = parsed.filter(r => r.worker);
+                const failList = valid.filter(r => r.isFail);
+                const passList = valid.filter(r => !r.isFail);
+
+                // 按订单分组
+                const orderMap = {};
+                valid.forEach(item => {
+                    const key = item.order;
+                    if (!orderMap[key]) {
+                        orderMap[key] = { order: item.order, date: item.date, total: 0, fail: 0 };
+                    }
+                    orderMap[key].total++;
+                    if (item.isFail) orderMap[key].fail++;
+                });
+                const orderList = Object.values(orderMap);
+                orderList.sort((a, b) => b.date.localeCompare(a.date));
+
+                cachedFailList = failList;
+                cachedOrderList = orderList;
+
+                const total = valid.length;
+                const passCount = passList.length;
+                const failCount = failList.length;
+                const rate = total > 0 ? ((passCount / total) * 100).toFixed(1) : 0;
+
+                el.total.textContent = total;
+                el.orderCount.textContent = orderList.length;
+                el.pass.textContent = passCount;
+                el.fail.textContent = failCount;
+                el.rate.textContent = rate + '%';
+                el.failBadge.textContent = failCount;
+
+                renderChart(failList);
+                renderFailTable(failList, '');
+                renderOrderTable(orderList, '');
+
+                el.statusText.textContent = `● 已加载 ${total} 条记录`;
+                el.statusText.className = 'status online';
+
+            } catch (error) {
+                console.error('加载失败:', error);
+                el.statusText.textContent = '● ' + error.message;
+                el.statusText.className = 'status offline';
+                el.failTable.innerHTML = `<div class="empty-state">❌ ${error.message}</div>`;
+                el.orderTable.innerHTML = `<div class="empty-state">❌ ${error.message}</div>`;
+            } finally {
+                isLoading = false;
+                el.refreshBtn.disabled = false;
+                el.refreshBtn.textContent = '🔄 刷新数据';
+            }
+        }
+
+        // ================================================================
+        // 渲染函数
+        // ================================================================
+
+        function renderChart(failList) {
+            const chart = echarts.init(el.chart);
+            const defectMap = {};
+            failList.forEach(item => {
+                item.defects.forEach(d => {
+                    defectMap[d.name] = (defectMap[d.name] || 0) + d.count;
+                });
+            });
+            const names = Object.keys(defectMap);
+            const values = Object.values(defectMap);
+
+            if (names.length === 0) {
+                chart.setOption({
+                    title: { text: '✅ 全部合格', left: 'center', top: 'center', textStyle: { color: '#999', fontSize: 16,
+                            fontWeight: 400 } },
+                    xAxis: { show: false },
+                    yAxis: { show: false },
+                    series: [{ type: 'bar', data: [] }]
+                });
+                return;
+            }
+
+            chart.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '8%', right: '8%', top: '10%', bottom: '22%' },
+                xAxis: { type: 'category', data: names, axisLabel: { fontSize: 11, interval: 0, rotate: names.length > 5 ?
+                            25 : 0 } },
+                yAxis: { type: 'value', minInterval: 1, name: '出现次数', splitLine: { lineStyle: { color: '#f0f0f0',
+                            type: 'dashed' } } },
+                series: [{
+                    type: 'bar',
+                    data: values,
+                    barWidth: '40%',
+                    itemStyle: { color: '#f55753', borderRadius: [4, 4, 0, 0] },
+                    label: { show: true, position: 'top', fontSize: 13, fontWeight: 600, color: '#f55753' }
+                }]
+            });
+            window.addEventListener('resize', () => chart.resize());
+        }
+
+        function renderFailTable(failList, keyword) {
+            if (failList.length === 0) {
+                el.failTable.innerHTML = '<div class="empty-state">✅ 全部合格，无不合格项</div>';
+                el.failHint.textContent = '共 0 条';
+                return;
+            }
+
+            const kw = keyword.trim().toLowerCase();
+            let filtered = failList;
+            if (kw) {
+                filtered = failList.filter(item =>
+                    item.order.toLowerCase().includes(kw) ||
+                    item.worker.toLowerCase().includes(kw)
+                );
+            }
+            filtered.sort((a, b) => b.date.localeCompare(a.date));
+            el.failHint.textContent = `共 ${filtered.length} 条`;
+
+            if (filtered.length === 0) {
+                el.failTable.innerHTML = `<div class="empty-state">🔍 未找到匹配 "${keyword}" 的记录</div>`;
+                return;
+            }
+
+            let html =
+                `<table><thead><tr><th>日期 ↓</th><th>订单号</th><th>工号</th><th>不合格项</th><th>备注</th></tr></thead><tbody>`;
+            filtered.forEach(item => {
+                const defectStr = item.defects.map(d => `<span class="tag defect">${d.name}</span>`).join(' ');
+                const remark = item.raw['_widget_1788052464079'] || '';
+                html += `<tr><td>${item.date}</td><td>${item.order}</td><td><strong>${item.worker}</strong></td><td>${defectStr}</td><td>${remark}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            el.failTable.innerHTML = html;
+        }
+
+        function renderOrderTable(orderList, keyword) {
+            if (orderList.length === 0) {
+                el.orderTable.innerHTML = '<div class="empty-state">暂无数据</div>';
+                el.orderHint.textContent = '共 0 个订单';
+                return;
+            }
+
+            const kw = keyword.trim().toLowerCase();
+            let filtered = orderList;
+            if (kw) {
+                filtered = orderList.filter(item => item.order.toLowerCase().includes(kw));
+            }
+            el.orderHint.textContent = `共 ${filtered.length} 个订单`;
+
+            if (filtered.length === 0) {
+                el.orderTable.innerHTML = `<div class="empty-state">🔍 未找到匹配 "${keyword}" 的订单</div>`;
+                return;
+            }
+
+            let html =
+                `<table><thead><tr><th>订单号</th><th>日期 ↓</th><th>总人数</th><th>不合格人数</th><th>合格率</th><th>状态</th></tr></thead><tbody>`;
+            filtered.forEach(item => {
+                const rate = item.total > 0 ? ((item.total - item.fail) / item.total * 100).toFixed(1) : 0;
+                const status = item.fail === 0 ? '✅ 全部合格' : `⚠️ ${item.fail}人不合格`;
+                html += `<tr><td><strong>${item.order}</strong></td><td>${item.date}</td><td>${item.total}</td><td style="color:${item.fail > 0 ? '#f55753' : '#22b573'}">${item.fail}</td><td>${rate}%</td><td>${status}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            el.orderTable.innerHTML = html;
+        }
+
+        // ================================================================
+        // 搜索事件
+        // ================================================================
+
+        el.failSearch.addEventListener('input', () => renderFailTable(cachedFailList, el.failSearch.value));
+        el.failClear.addEventListener('click', () => { el.failSearch.value = '';
+            renderFailTable(cachedFailList, ''); });
+        el.orderSearch.addEventListener('input', () => renderOrderTable(cachedOrderList, el.orderSearch.value));
+        el.orderClear.addEventListener('click', () => { el.orderSearch.value = '';
+            renderOrderTable(cachedOrderList, ''); });
+        el.refreshBtn.addEventListener('click', loadData);
+
+        // ================================================================
+        // 启动
+        // ================================================================
+
+        loadData();
+    </script>
+
+</body>
+</html>
