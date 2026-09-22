@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SGOOD 设备分析大屏</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(9, 25, 46, 0.82);
+      --panel-strong: rgba(10, 34, 63, 0.95);
+      --line: rgba(117, 181, 255, 0.18);
+      --text: #ebf5ff;
+      --muted: #8eadd1;
+      --cyan: #5be7ff;
+      --green: #68ffa8;
+      --yellow: #ffd36a;
+      --red: #ff88a7;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(91, 231, 255, 0.14), transparent 30%),
+        radial-gradient(circle at 90% 8%, rgba(104, 255, 168, 0.11), transparent 25%),
+        linear-gradient(135deg, #030812 0%, var(--bg) 42%, #081a31 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(91, 231, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(91, 231, 255, 0.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 82%);
+    }
+
+    button { font: inherit; }
+
+    .screen {
+      position: relative;
+      z-index: 1;
+      width: min(1500px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 32px;
+    }
+
+    .topbar,
+    .panel {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 112px;
+      margin-bottom: 20px;
+      padding: 24px 28px;
+      border-radius: 8px;
+    }
+
+    .topbar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(91, 231, 255, 0.1), transparent 28%, transparent 72%, rgba(104, 255, 168, 0.08)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 45%);
+    }
+
+    .brand { position: relative; min-width: 0; }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(28px, 3vw, 42px);
+      font-weight: 700;
+      letter-spacing: 0;
+      text-shadow: 0 0 22px rgba(91, 231, 255, 0.2);
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .clock {
+      position: relative;
+      flex: 0 0 auto;
+      text-align: right;
+    }
+
+    .clock strong { display: block; font-size: 25px; font-variant-numeric: tabular-nums; }
+    .clock span { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 286px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel { position: relative; border-radius: 8px; }
+
+    .sidebar {
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .section-label {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .section-hint { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+
+    .nav {
+      display: grid;
+      gap: 10px;
+      max-height: calc(100vh - 136px);
+      margin-top: 18px;
+      padding-right: 6px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(91, 231, 255, 0.45) transparent;
+    }
+
+    .nav-item {
+      position: relative;
+      width: 100%;
+      min-height: 76px;
+      padding: 14px;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(14, 36, 64, 0.9), rgba(8, 24, 44, 0.78));
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .nav-item:hover { transform: translateY(-2px); border-color: rgba(91, 231, 255, 0.38); }
+    .nav-item.active {
+      border-color: rgba(91, 231, 255, 0.52);
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.22), rgba(104, 255, 168, 0.1)),
+        rgba(10, 34, 58, 0.94);
+      box-shadow: inset 3px 0 0 var(--cyan);
+    }
+
+    .nav-item strong { display: block; margin-bottom: 9px; font-size: 16px; }
+
+    .nav-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav-status::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #7f8fa6;
+      box-shadow: 0 0 10px rgba(127, 143, 166, 0.4);
+    }
+
+    .nav-status.online::before { background: var(--green); box-shadow: 0 0 12px rgba(104, 255, 168, 0.5); }
+    .nav-status.offline::before { background: var(--red); box-shadow: 0 0 12px rgba(255, 136, 167, 0.45); }
+    .nav-status.loading::before { background: var(--yellow); box-shadow: 0 0 12px rgba(255, 211, 106, 0.45); }
+
+    .content { min-width: 0; padding: 24px; }
+
+    .content-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .content-title strong {
+      display: block;
+      margin-top: 8px;
+      font-size: clamp(25px, 2.4vw, 34px);
+      line-height: 1.2;
+      text-shadow: 0 0 18px rgba(91, 231, 255, 0.12);
+    }
+
+    .refresh-button {
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 0 16px;
+      color: var(--text);
+      cursor: pointer;
+      border: 1px solid rgba(91, 231, 255, 0.35);
+      border-radius: 6px;
+      background: rgba(91, 231, 255, 0.1);
+      transition: background 160ms ease, border-color 160ms ease;
+    }
+
+    .refresh-button:hover { background: rgba(91, 231, 255, 0.18); border-color: var(--cyan); }
+    .refresh-button:disabled { opacity: 0.55; cursor: wait; }
+
+    .content-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      border-radius: 6px;
+      background: rgba(117, 181, 255, 0.14);
+    }
+
+    .status-card { min-width: 0; padding: 15px 16px; background: rgba(7, 24, 44, 0.88); }
+    .status-card span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 12px; }
+    .status-card strong {
+      display: block;
+      overflow: hidden;
+      font-size: 19px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric-card {
+      position: relative;
+      min-width: 0;
+      min-height: 132px;
+      padding: 17px 16px;
+      overflow: hidden;
+      border: 1px solid rgba(117, 181, 255, 0.14);
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(12, 34, 61, 0.95), rgba(7, 24, 44, 0.82));
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.14);
+      transition: transform 160ms ease, border-color 160ms ease;
+    }
+
+    .metric-card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 58px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan));
+    }
+
+    .metric-card:hover { transform: translateY(-3px); border-color: rgba(91, 231, 255, 0.4); }
+    .metric-label { min-height: 34px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .metric-value {
+      margin-top: 9px;
+      overflow-wrap: anywhere;
+      color: #fff;
+      font-size: 25px;
+      font-weight: 700;
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-unit { min-height: 18px; margin-top: 6px; color: #9edfff; font-size: 12px; }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      padding: 30px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.8;
+      border: 1px dashed rgba(117, 181, 255, 0.2);
+      border-radius: 6px;
+      background: rgba(7, 24, 44, 0.45);
+    }
+
+    /* Align the visual language with index.html while retaining this page's controls. */
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(91, 231, 255, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(104, 255, 168, 0.14), transparent 22%),
+        linear-gradient(135deg, #030812 0%, #07111f 38%, #081a31 100%);
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: 0;
+      border-radius: 50%;
+      pointer-events: none;
+      mask-image: none;
+    }
+
+    body::before {
+      inset: auto -8vw auto auto;
+      top: -18vh;
+      width: 40vw;
+      height: 40vw;
+      background: radial-gradient(circle, rgba(91, 231, 255, 0.18), transparent 62%);
+      filter: blur(10px);
+    }
+
+    body::after {
+      bottom: -20vh;
+      left: -12vw;
+      width: 42vw;
+      height: 42vw;
+      background: radial-gradient(circle, rgba(104, 255, 168, 0.12), transparent 64%);
+      filter: blur(16px);
+    }
+
+    .topbar {
+      display: block;
+      min-height: 0;
+      padding: 26px 28px 24px;
+      border-radius: 30px;
+      text-align: center;
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.08), transparent 30%),
+        linear-gradient(180deg, rgba(7, 20, 37, 0.95), rgba(7, 20, 37, 0.72));
+    }
+
+    .topbar::before {
+      background:
+        linear-gradient(90deg, transparent, rgba(91, 231, 255, 0.08), transparent),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 45%);
+    }
+
+    .topbar::after {
+      content: "";
+      position: absolute;
+      top: -26px;
+      left: 50%;
+      width: 240px;
+      height: 70px;
+      transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(91, 231, 255, 0.28), transparent 72%);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    .brand h1 { position: relative; }
+    .brand p { position: relative; margin-top: 8px; font-size: 14px; }
+    .clock { display: none; }
+
+    .panel {
+      overflow: hidden;
+      border-radius: 24px;
+      background: linear-gradient(180deg, var(--panel-strong), var(--panel));
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 22%),
+        linear-gradient(135deg, rgba(91, 231, 255, 0.06), transparent 24%);
+      pointer-events: none;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .section-label,
+    .section-hint,
+    .nav,
+    .content-head,
+    .content-meta,
+    .metric-grid { position: relative; z-index: 1; }
+
+    .nav { gap: 12px; }
+
+    .nav-item {
+      min-height: 0;
+      padding: 18px 16px;
+      overflow: hidden;
+      border-radius: 20px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 12px 24px rgba(0, 0, 0, 0.16);
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+    }
+
+    .nav-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(91, 231, 255, 0.08), transparent 36%);
+      pointer-events: none;
+    }
+
+    .nav-item:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 18px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .nav-item.active {
+      border-color: rgba(91, 231, 255, 0.42);
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.24), rgba(104, 255, 168, 0.14)),
+        linear-gradient(180deg, rgba(13, 41, 68, 0.98), rgba(10, 34, 58, 0.9));
+      box-shadow:
+        inset 0 0 0 1px rgba(91, 231, 255, 0.12),
+        0 18px 32px rgba(5, 15, 31, 0.28);
+    }
+
+    .nav-item strong,
+    .nav-status { position: relative; }
+
+    .nav-status {
+      padding: 4px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .refresh-button {
+      position: relative;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(14, 48, 76, 0.95), rgba(8, 31, 56, 0.9));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .content-meta {
+      gap: 12px;
+      padding: 16px;
+      overflow: visible;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(91, 231, 255, 0.07), transparent 45%),
+        rgba(7, 24, 44, 0.5);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .status-card {
+      padding: 14px 16px;
+      border: 1px solid rgba(117, 181, 255, 0.18);
+      border-radius: 18px;
+      background: rgba(8, 28, 54, 0.75);
+    }
+
+    .status-card strong { font-size: 22px; }
+
+    .metric-card {
+      min-height: 144px;
+      padding: 18px 16px;
+      border-radius: 20px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 14px 28px rgba(0, 0, 0, 0.16);
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .metric-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top right, rgba(91, 231, 255, 0.16), transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%);
+      pointer-events: none;
+    }
+
+    .metric-card::after { display: none; }
+    .metric-card:hover {
+      transform: translateY(-4px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 20px 34px rgba(0, 0, 0, 0.22);
+    }
+
+    .metric-label,
+    .metric-value,
+    .metric-unit { position: relative; }
+
+    .metric-value { margin-top: 10px; font-size: 26px; }
+    .empty-state { border-radius: 24px; }
+
+    @media (max-width: 1200px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; max-height: none; }
+      .nav { grid-template-columns: repeat(3, minmax(0, 1fr)); max-height: none; padding-right: 0; }
+      .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      .topbar { align-items: flex-start; }
+      .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .content-meta, .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .status-card:last-child { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 560px) {
+      .screen { width: calc(100vw - 18px); padding-top: 10px; }
+      .topbar { flex-direction: column; min-height: 0; padding: 18px; }
+      .clock { text-align: left; }
+      .sidebar, .content { padding: 16px; }
+      .nav, .content-meta, .metric-grid { grid-template-columns: 1fr; }
+      .status-card:last-child { grid-column: auto; }
+      .content-head { align-items: flex-start; }
+      .refresh-button { padding: 0 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="topbar">
+      <div class="brand">
+        <h1>SGOOD 设备分析大屏</h1>
+        <p>DEVICE ANALYTICS &amp; REAL-TIME MONITORING</p>
+      </div>
+      <div class="clock" aria-label="当前时间">
+        <strong id="clockTime">--:--:--</strong>
+        <span id="clockDate">----</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel sidebar">
+        <h2 class="section-label">设备目录</h2>
+        <span class="section-hint">按数据源配置顺序排列</span>
+        <nav class="nav" id="deviceNav" aria-label="设备列表"></nav>
+      </aside>
+
+      <section class="panel content" aria-live="polite">
+        <div class="content-head">
+          <div class="content-title">
+            <h2 class="section-label">实时参数概览</h2>
+            <strong id="deviceTitle">喷涂线1</strong>
+          </div>
+          <button class="refresh-button" id="refreshButton" type="button">刷新数据</button>
+        </div>
+
+        <div class="content-meta">
+          <div class="status-card">
+            <span>最新上传时间</span>
+            <strong id="uploadTime">加载中</strong>
+          </div>
+          <div class="status-card">
+            <span>设备状态</span>
+            <strong id="systemStatus">正在连接</strong>
+          </div>
+          <div class="status-card">
+            <span>下次自动刷新</span>
+            <strong id="refreshCountdown">60 秒</strong>
+          </div>
+        </div>
+
+        <div class="metric-grid" id="metricGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API_KEY = "Xem7wSITYd4CuMqFMvV8K7Zm8QavYbAS";
+    const AUTO_REFRESH_SECONDS = 60;
+    const REQUEST_INTERVAL_MS = 250;
+    const ONLINE_THRESHOLD_MS = 30 * 60 * 1000;
+
+    const paintFields = [
+      { key: "_widget_1780623299361", label: "冷炉设定时间", unit: "s" },
+      { key: "_widget_1780623299382", label: "冷炉已过时间1", unit: "s" },
+      { key: "_widget_1780623299403", label: "冷炉设定时间2", unit: "s" },
+      { key: "_widget_1780623299424", label: "冷炉已过时间2", unit: "s" },
+      { key: "_widget_1780623299445", label: "冷炉设定时间3", unit: "s" },
+      { key: "_widget_1780623299466", label: "冷炉已过时间3", unit: "s" },
+      { key: "_widget_1780623299487", label: "冷炉设定时间4", unit: "s" },
+      { key: "_widget_1780623299508", label: "冷炉已过时间4", unit: "s" },
+      { key: "_widget_1780623299529", label: "冷炉设定时间5", unit: "s" },
+      { key: "_widget_1780623299550", label: "冷炉已过时间5", unit: "s" },
+      { key: "_widget_1780623299571", label: "电子尺反馈位置", unit: "mm" },
+      { key: "_widget_1780623299592", label: "线速设定", unit: "" },
+      { key: "_widget_1780623299613", label: "除尘房吹尘延时", unit: "s" },
+      { key: "_widget_1780623299634", label: "除尘房吹尘时间", unit: "s" }
+    ];
+
+    const cutterFields = [
+      { key: "_widget_1780621012753", label: "当前产量", unit: "件" },
+      { key: "_widget_1780621012774", label: "当前周期", unit: "s" },
+      { key: "_widget_1780621012795", label: "X轴实时位置", unit: "mm" },
+      { key: "_widget_1780621012816", label: "Y轴实时位置", unit: "mm" },
+      { key: "_widget_1780621012837", label: "U轴实时位置", unit: "mm" },
+      { key: "_widget_1780621012879", label: "X轴通过点", unit: "mm" },
+      { key: "_widget_1780621012900", label: "Y轴通过点", unit: "mm" },
+      { key: "_widget_1780621012921", label: "U轴通过点", unit: "mm" },
+      { key: "_widget_1780621012942", label: "X轴终点", unit: "mm" },
+      { key: "_widget_1780621012963", label: "Y轴终点", unit: "mm" },
+      { key: "_widget_1780621012984", label: "U轴终点", unit: "mm" },
+      { key: "_widget_1780621012858", label: "送膜步进实时", unit: "" },
+      { key: "_widget_1780621013005", label: "送膜步进轴终点", unit: "" },
+      { key: "_widget_1780621013047", label: "流道步进轴实时", unit: "" },
+      { key: "_widget_1780621013026", label: "流道步进轴终点", unit: "" }
+    ];
+
+    const latheFields = [
+      { key: "_widget_1789977768137", label: "X1机床实际位置", unit: "mm" },
+      { key: "_widget_1789977768158", label: "X1机床相对实际位置", unit: "mm" },
+      { key: "_widget_1789977768179", label: "X1工件实际位置", unit: "mm" },
+      { key: "_widget_1789977768200", label: "Z1机床实际位置", unit: "mm" },
+      { key: "_widget_1789977768221", label: "Z1机床相对实际位置", unit: "mm" },
+      { key: "_widget_1789977768242", label: "Z1工件实际位置", unit: "mm" }
+    ];
+
+    const DEVICES = [
+      {
+        id: "paint-1", name: "喷涂线1",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/55a440d9ba2708c38a5b64d4/data",
+        timeKey: "_widget_1780623299314", fields: paintFields
+      },
+      {
+        id: "paint-2", name: "喷涂线2",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/55e9269e84bdd4cd01ca9748/data",
+        timeKey: "_widget_1780623299314",
+        fields: [
+          { key: "_widget_1780623299361", label: "冷却时间1", unit: "s" },
+          { key: "_widget_1780623299382", label: "剩余时间1", unit: "s" },
+          { key: "_widget_1780623299403", label: "冷却时间2", unit: "s" },
+          { key: "_widget_1780623299424", label: "剩余时间2", unit: "s" },
+          { key: "_widget_1780623299445", label: "冷却时间3", unit: "s" },
+          { key: "_widget_1780623299466", label: "剩余时间3", unit: "s" },
+          { key: "_widget_1780623299487", label: "冷却时间4", unit: "s" },
+          { key: "_widget_1780623299508", label: "剩余时间4", unit: "s" },
+          { key: "_widget_1780623299529", label: "冷却时间5", unit: "s" },
+          { key: "_widget_1780623299550", label: "剩余时间5", unit: "s" },
+          { key: "_widget_1780623299571", label: "电子尺反馈位置", unit: "mm" },
+          { key: "_widget_1780623299592", label: "线速设定", unit: "" },
+          { key: "_widget_1780623299613", label: "除尘房吹尘延时", unit: "s" },
+          { key: "_widget_1780623299634", label: "除尘房吹尘时间", unit: "s" },
+          { key: "_widget_1780625521238", label: "风机频率设定", unit: "Hz" }
+        ]
+      },
+      {
+        id: "sandblast", name: "喷砂机",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/515e75b0102c0141bdc56e18/data",
+        timeKey: "_widget_1780622426746",
+        fields: [
+          { key: "_widget_1780622426804", label: "大盘频率", unit: "Hz" },
+          { key: "_widget_1780622426825", label: "蛟龙频率", unit: "Hz" },
+          { key: "_widget_1780622426846", label: "提升频率", unit: "Hz" },
+          { key: "_widget_1780622426867", label: "废渣频率", unit: "Hz" },
+          { key: "_widget_1780622426888", label: "提升延时", unit: "s" }
+        ]
+      },
+      {
+        id: "washer", name: "清洗机",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/5ab9a9c46c1465c952594b17/data",
+        timeKey: "_widget_1780622426746",
+        fields: [
+          { key: "_widget_1780622705208", label: "1#冷炉时间", unit: "s" },
+          { key: "_widget_1780622705229", label: "2#冷炉时间", unit: "s" },
+          { key: "_widget_1780622705250", label: "线速设定", unit: "" },
+          { key: "_widget_1780622705271", label: "线速比例1", unit: "%" },
+          { key: "_widget_1780622705292", label: "线速比例2", unit: "%" },
+          { key: "_widget_1780622705313", label: "线速输出", unit: "" },
+          { key: "_widget_1780622705334", label: "废气抽风频率", unit: "Hz" },
+          { key: "_widget_1780622705355", label: "输送带线速", unit: "" }
+        ]
+      },
+      {
+        id: "shotblast", name: "抛丸机",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/586796e434602439c455d5e8/data",
+        timeKey: "_widget_1780622983537",
+        fields: [
+          { key: "_widget_1780622983571", label: "抛丸机电机1频率", unit: "Hz" },
+          { key: "_widget_1780622983592", label: "抛丸机电机2频率", unit: "Hz" },
+          { key: "_widget_1780622983613", label: "抛丸机电机3频率", unit: "Hz" },
+          { key: "_widget_1780622983634", label: "抛丸机电机4频率", unit: "Hz" },
+          { key: "_widget_1780622983655", label: "输送电机", unit: "Hz" },
+          { key: "_widget_1780622983676", label: "提升电机", unit: "Hz" }
+        ]
+      },
+      {
+        id: "spin-coating", name: "旋涂线",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/55b51562e3d569b8fc1aa66e/data",
+        timeKey: "_widget_1780623299314",
+        fields: [
+          ...paintFields.slice(0, 8),
+          { key: "_widget_1780623299592", label: "底漆网带线速", unit: "" },
+          { key: "_widget_1780623299613", label: "面漆网带线速", unit: "" },
+          { key: "_widget_1780623299634", label: "地轨驱动线速", unit: "" },
+          { key: "_widget_1780626170798", label: "废弃延时", unit: "s" }
+        ]
+      },
+      {
+        id: "film-cutter", name: "自动切膜机",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/58bfbff0eff4d34991d49900/data",
+        timeKey: "_widget_1780621012695", fields: cutterFields
+      },
+      {
+        id: "lathe-1", name: "立式车口机1",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/55ecdc4c1566accc695ac02e/data",
+        timeKey: "_widget_1789977768263", fields: latheFields
+      },
+      {
+        id: "lathe-2", name: "立式车口机2",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/5144c6e45c63a47c00d3e0b8/data",
+        timeKey: "_widget_1789977768263", fields: latheFields
+      },
+      {
+        id: "etching", name: "爬坡式蚀刻线",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/55a9f2b1857138785db9b486/data",
+        timeKey: "_widget_1789977768263",
+        fields: [
+          { key: "_widget_1789977768137", label: "A段当前温度", unit: "℃" },
+          { key: "_widget_1789977768158", label: "B段当前温度", unit: "℃" },
+          { key: "_widget_1789977768179", label: "输送频率", unit: "Hz" }
+        ]
+      },
+      {
+        id: "hydraulic", name: "钢丝缠绕液压机",
+        apiUrl: "https://shurui.online-office.net/openapi/v1/app/5278fae443ab9e3ea4a55b6c/entry/5b2289da03797425dfd4e9a6/data",
+        timeKey: "_widget_1789977768263",
+        fields: [
+          { key: "_widget_1789977768137", label: "主缸位置", unit: "mm" },
+          { key: "_widget_1789977768158", label: "主缸压力", unit: "MPa" },
+          { key: "_widget_1789977768179", label: "油泵压力", unit: "MPa" },
+          { key: "_widget_1789977768200", label: "伺服输出压力", unit: "MPa" },
+          { key: "_widget_1789977768221", label: "伺服输出流量", unit: "%" },
+          { key: "_widget_1789977768242", label: "周期时间", unit: "s" },
+          { key: "_widget_1789982815245", label: "产量", unit: "件" }
+        ]
+      }
+    ];
+
+    const state = {
+      activeDeviceId: DEVICES[0].id,
+      cache: new Map(),
+      deviceStatus: new Map(),
+      inFlight: new Map(),
+      loadToken: 0,
+      countdown: AUTO_REFRESH_SECONDS,
+      requestQueue: Promise.resolve(),
+      nextRequestAt: 0
+    };
+
+    const el = {
+      clockTime: document.getElementById("clockTime"),
+      clockDate: document.getElementById("clockDate"),
+      deviceNav: document.getElementById("deviceNav"),
+      deviceTitle: document.getElementById("deviceTitle"),
+      uploadTime: document.getElementById("uploadTime"),
+      systemStatus: document.getElementById("systemStatus"),
+      refreshCountdown: document.getElementById("refreshCountdown"),
+      refreshButton: document.getElementById("refreshButton"),
+      metricGrid: document.getElementById("metricGrid")
+    };
+
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    function scheduleRequest(task) {
+      const run = async () => {
+        const waitMs = Math.max(0, state.nextRequestAt - Date.now());
+        if (waitMs) await delay(waitMs);
+        state.nextRequestAt = Date.now() + REQUEST_INTERVAL_MS;
+        return task();
+      };
+      state.requestQueue = state.requestQueue.catch(() => undefined).then(run);
+      return state.requestQueue;
+    }
+
+    function formatValue(value) {
+      if (value === null || value === undefined || value === "") return "--";
+      const number = Number(value);
+      if (!Number.isNaN(number) && String(value).trim() !== "") {
+        return number.toLocaleString("zh-CN", { maximumFractionDigits: 3 });
+      }
+      return String(value);
+    }
+
+    function parseTime(value) {
+      if (!value) return null;
+      const normalized = String(value).replace(/-/g, "/").replace("T", " ").replace(/Z$/, "");
+      const date = new Date(normalized);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatTime(value) {
+      const date = parseTime(value);
+      if (!date) return value ? String(value) : "--";
+      return new Intl.DateTimeFormat("zh-CN", {
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+      }).format(date).replaceAll("/", "-");
+    }
+
+    function getDeviceStatus(device, record) {
+      const uploadedAt = parseTime(record?.[device.timeKey]);
+      if (!uploadedAt) return { text: "离线", className: "offline" };
+      const age = Date.now() - uploadedAt.getTime();
+      return age <= ONLINE_THRESHOLD_MS
+        ? { text: "在线", className: "online" }
+        : { text: "离线", className: "offline" };
+    }
+
+    function createElement(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function renderNav() {
+      const fragment = document.createDocumentFragment();
+      DEVICES.forEach(device => {
+        const button = createElement("button", `nav-item${device.id === state.activeDeviceId ? " active" : ""}`);
+        button.type = "button";
+        button.dataset.deviceId = device.id;
+        button.setAttribute("aria-pressed", String(device.id === state.activeDeviceId));
+        button.append(createElement("strong", "", device.name));
+        const status = state.deviceStatus.get(device.id) || { text: "待加载", className: "idle" };
+        button.append(createElement("span", `nav-status ${status.className}`, status.text));
+        button.addEventListener("click", () => selectDevice(device.id));
+        fragment.append(button);
+      });
+      el.deviceNav.replaceChildren(fragment);
+    }
+
+    function renderMetrics(device, record) {
+      const fragment = document.createDocumentFragment();
+      device.fields.forEach(field => {
+        const card = createElement("article", "metric-card");
+        card.append(createElement("div", "metric-label", field.label));
+        card.append(createElement("div", "metric-value", formatValue(record[field.key])));
+        card.append(createElement("div", "metric-unit", field.unit || " "));
+        fragment.append(card);
+      });
+      el.metricGrid.replaceChildren(fragment);
+    }
+
+    function renderEmpty(message) {
+      el.metricGrid.replaceChildren(createElement("div", "empty-state", message));
+    }
+
+    async function fetchLatestRecord(device) {
+      if (state.inFlight.has(device.id)) return state.inFlight.get(device.id);
+
+      const promise = scheduleRequest(async () => {
+        const response = await fetch(device.apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${API_KEY}`
+          },
+          body: JSON.stringify({
+            limit: 1,
+            skip: 0,
+            sort: { [device.timeKey]: "desc" }
+          })
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const result = await response.json();
+        const records = Array.isArray(result.data) ? result.data : [];
+        if (!records.length) throw new Error("接口未返回设备数据");
+        return records[0];
+      }).finally(() => state.inFlight.delete(device.id));
+
+      state.inFlight.set(device.id, promise);
+      return promise;
+    }
+
+    function applyRecord(device, record) {
+      const status = getDeviceStatus(device, record);
+      state.cache.set(device.id, record);
+      state.deviceStatus.set(device.id, status);
+      renderMetrics(device, record);
+      renderNav();
+      el.uploadTime.textContent = formatTime(record[device.timeKey]);
+      el.systemStatus.textContent = status.text;
+      el.systemStatus.style.color = status.className === "online" ? "var(--green)" : "var(--red)";
+    }
+
+    async function loadActiveDevice({ showLoading = true } = {}) {
+      const device = DEVICES.find(item => item.id === state.activeDeviceId);
+      if (!device) return;
+      const token = ++state.loadToken;
+      state.countdown = AUTO_REFRESH_SECONDS;
+      el.deviceTitle.textContent = device.name;
+      el.refreshButton.disabled = true;
+
+      const cached = state.cache.get(device.id);
+      if (cached) applyRecord(device, cached);
+      if (showLoading && !cached) {
+        el.uploadTime.textContent = "加载中";
+        el.systemStatus.textContent = "正在连接";
+        el.systemStatus.style.color = "var(--yellow)";
+        renderEmpty("正在加载设备最新数据...");
+      }
+
+      state.deviceStatus.set(device.id, { text: "加载中", className: "loading" });
+      renderNav();
+
+      try {
+        const record = await fetchLatestRecord(device);
+        state.cache.set(device.id, record);
+        state.deviceStatus.set(device.id, getDeviceStatus(device, record));
+        if (token !== state.loadToken || device.id !== state.activeDeviceId) {
+          renderNav();
+          return;
+        }
+        applyRecord(device, record);
+      } catch (error) {
+        state.deviceStatus.set(device.id, { text: "连接失败", className: "offline" });
+        renderNav();
+        if (token !== state.loadToken || device.id !== state.activeDeviceId) return;
+        if (!cached) renderEmpty(`${device.name} 数据加载失败，请检查网络、接口或鉴权配置。`);
+        el.systemStatus.textContent = "连接失败";
+        el.systemStatus.style.color = "var(--red)";
+        if (!cached) el.uploadTime.textContent = "--";
+        console.error(`${device.name} 数据加载失败:`, error);
+      } finally {
+        if (token === state.loadToken) el.refreshButton.disabled = false;
+      }
+    }
+
+    function selectDevice(deviceId) {
+      if (deviceId === state.activeDeviceId) return;
+      state.activeDeviceId = deviceId;
+      renderNav();
+      loadActiveDevice();
+    }
+
+    function updateClock() {
+      const now = new Date();
+      el.clockTime.textContent = now.toLocaleTimeString("zh-CN", { hour12: false });
+      el.clockDate.textContent = now.toLocaleDateString("zh-CN", {
+        year: "numeric", month: "long", day: "numeric", weekday: "long"
+      });
+    }
+
+    el.refreshButton.addEventListener("click", () => loadActiveDevice({ showLoading: false }));
+
+    setInterval(() => {
+      updateClock();
+      state.countdown -= 1;
+      if (state.countdown <= 0) {
+        loadActiveDevice({ showLoading: false });
+        state.countdown = AUTO_REFRESH_SECONDS;
+      }
+      el.refreshCountdown.textContent = `${state.countdown} 秒`;
+    }, 1000);
+
+    updateClock();
+    renderNav();
+    renderEmpty("正在加载设备最新数据...");
+    loadActiveDevice();
+  </script>
+</body>
+</html>
