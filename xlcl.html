@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>旭联材料设备分析大屏</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --panel: rgba(9, 25, 46, .82);
+      --panel-strong: rgba(10, 34, 63, .95);
+      --line: rgba(117, 181, 255, .18);
+      --text: #ebf5ff;
+      --muted: #8eadd1;
+      --cyan: #5be7ff;
+      --green: #68ffa8;
+      --yellow: #ffd36a;
+      --red: #ff7f9f;
+      --shadow: 0 24px 60px rgba(0, 0, 0, .35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(91, 231, 255, .16), transparent 28%),
+        radial-gradient(circle at top right, rgba(104, 255, 168, .12), transparent 22%),
+        linear-gradient(135deg, #030812, #07111f 42%, #081a31);
+      overflow-x: hidden;
+    }
+    .screen { position: relative; z-index: 1; width: min(1500px, calc(100vw - 32px)); margin: auto; padding: 24px 0 32px; }
+    .topbar, .panel { border: 1px solid var(--line); background: linear-gradient(180deg, var(--panel-strong), var(--panel)); box-shadow: var(--shadow); backdrop-filter: blur(10px); }
+    .topbar { padding: 25px 28px; margin-bottom: 20px; border-radius: 28px; text-align: center; }
+    .topbar h1 { margin: 0; font-size: clamp(28px, 3.2vw, 42px); letter-spacing: .14em; text-shadow: 0 0 22px rgba(91, 231, 255, .2); }
+    .topbar p { margin: 8px 0 18px; color: var(--muted); font-size: 13px; letter-spacing: .18em; }
+    .toolbar { display: flex; justify-content: flex-end; }
+    .toolbar button { padding: 9px 16px; color: var(--text); border: 1px solid rgba(91, 231, 255, .32); border-radius: 999px; background: rgba(91, 231, 255, .1); cursor: pointer; }
+    .toolbar button:hover { background: rgba(91, 231, 255, .2); }
+    .toolbar button:disabled { opacity: .6; cursor: wait; }
+    .layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 20px; align-items: start; }
+    .panel { position: relative; overflow: hidden; border-radius: 24px; }
+    .sidebar { position: sticky; top: 24px; max-height: calc(100vh - 48px); padding: 20px; }
+    h2 { position: relative; margin: 0; font-size: 18px; font-weight: 600; letter-spacing: .08em; }
+    .hint, .content-head small { color: var(--muted); font-size: 12px; }
+    .nav { display: grid; gap: 12px; max-height: calc(100vh - 150px); margin-top: 18px; padding-right: 5px; overflow-y: auto; }
+    .nav-item { width: 100%; padding: 17px 15px; border: 1px solid rgba(117, 181, 255, .14); border-radius: 18px; color: var(--text); background: linear-gradient(180deg, rgba(14, 36, 64, .9), rgba(8, 24, 44, .78)); text-align: left; cursor: pointer; transition: .18s ease; }
+    .nav-item:hover, .nav-item.active { border-color: rgba(91, 231, 255, .42); transform: translateY(-2px); }
+    .nav-item.active { background: linear-gradient(135deg, rgba(91, 231, 255, .24), rgba(104, 255, 168, .14)), rgba(10, 34, 58, .9); }
+    .nav-item strong { display: block; margin-bottom: 9px; font-size: 16px; }
+    .nav-meta { display: flex; justify-content: space-between; gap: 8px; align-items: center; color: var(--muted); font-size: 11px; }
+    .status-label { display: inline-flex; align-items: center; }
+    .dot { width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: #7f8fa6; }
+    .online .dot { background: var(--green); box-shadow: 0 0 10px rgba(104, 255, 168, .6); }
+    .offline .dot { background: var(--red); box-shadow: 0 0 10px rgba(255, 127, 159, .45); }
+    .loading .dot { background: var(--yellow); box-shadow: 0 0 10px rgba(255, 211, 106, .45); }
+    .content { padding: 24px; }
+    .content-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
+    .content-title strong { display: block; margin-top: 8px; font-size: clamp(25px, 2.4vw, 34px); }
+    .last-refresh { color: var(--muted); font-size: 12px; text-align: right; }
+    .summary, .statusbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .statusbar { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 0; }
+    .summary-card, .status-card { padding: 14px 16px; border: 1px solid rgba(117, 181, 255, .14); border-radius: 17px; background: rgba(7, 24, 44, .58); }
+    .summary-card span, .status-card span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 12px; }
+    .summary-card strong, .status-card strong { display: block; overflow: hidden; font-size: 22px; text-overflow: ellipsis; white-space: nowrap; }
+    .summary-card:nth-child(2) strong { color: var(--green); }
+    .summary-card:nth-child(3) strong { color: var(--red); }
+    .summary-card:nth-child(4) strong { color: var(--cyan); }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+    .metric-card { min-height: 132px; padding: 17px 16px; border: 1px solid rgba(117, 181, 255, .14); border-radius: 18px; background: linear-gradient(180deg, rgba(12, 34, 61, .95), rgba(7, 24, 44, .82)); transition: .18s ease; }
+    .metric-card:hover { transform: translateY(-3px); border-color: rgba(91, 231, 255, .4); }
+    .metric-label { min-height: 34px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .metric-value { margin-top: 9px; color: white; font-size: 25px; font-weight: 700; word-break: break-word; }
+    .metric-unit { margin-top: 5px; color: #9edfff; font-size: 12px; }
+    .empty { grid-column: 1 / -1; padding: 42px 20px; border: 1px dashed rgba(117, 181, 255, .22); border-radius: 20px; color: var(--muted); text-align: center; line-height: 1.8; }
+    .error { color: #ffafbf; }
+    @media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } .sidebar { position: static; max-height: none; } .nav { max-height: none; grid-template-columns: repeat(2, minmax(0, 1fr)); } .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 720px) { .screen { width: calc(100vw - 18px); padding-top: 12px; } .topbar, .content { padding: 18px; } .summary, .metric-grid, .statusbar, .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); } .content-head { flex-direction: column; } .last-refresh { text-align: left; } }
+    @media (max-width: 480px) { .summary, .metric-grid, .statusbar, .nav { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="topbar">
+      <h1>旭联材料设备分析大屏</h1>
+      <p>XLCL EQUIPMENT ANALYTICS</p>
+      <div class="toolbar"><button id="refreshAll" type="button">刷新全部设备</button></div>
+    </header>
+    <main class="layout">
+      <aside class="panel sidebar">
+        <h2>设备目录</h2>
+        <div class="hint">点击设备查看最新采集数据</div>
+        <div class="nav" id="deviceNav"></div>
+      </aside>
+      <section class="panel content">
+        <div class="content-head">
+          <div class="content-title"><small>当前监测设备</small><strong id="deviceTitle">板切机1</strong></div>
+          <div class="last-refresh">最后刷新<br><span id="lastRefresh">--</span></div>
+        </div>
+        <div class="summary">
+          <div class="summary-card"><span>监测设备</span><strong id="totalCount">4</strong></div>
+          <div class="summary-card"><span>在线设备</span><strong id="onlineCount">0</strong></div>
+          <div class="summary-card"><span>离线设备</span><strong id="offlineCount">0</strong></div>
+          <div class="summary-card"><span>当前字段</span><strong id="fieldCount">0</strong></div>
+        </div>
+        <div class="statusbar">
+          <div class="status-card"><span>最新上传时间</span><strong id="uploadTime">加载中</strong></div>
+          <div class="status-card"><span>设备状态</span><strong id="systemStatus">正在连接</strong></div>
+        </div>
+        <div class="metric-grid" id="metricGrid"></div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const API_KEY = "fxNvnR652XXW5qDIjF93pUbcBYwu75bA";
+    const API_BASE = "https://shurui.online-office.net/openapi/v1/app/50ce0d508dfec95917456c32/entry/";
+    const TEMPLATES = {
+      board1: {
+        timeKey: "N_1",
+        fields: [
+          ["N_2", "切片长度设置", ""], ["N_3", "当前值", ""], ["N_4", "横向微调单位", ""],
+          ["N_5", "横向速度显示", ""], ["N_6", "横向速度设置", ""], ["N_7", "纵向速度显示", ""],
+          ["N_8", "纵向速度比例", ""], ["N_9", "纵向速度设置显示", ""]
+        ]
+      },
+      board2: {
+        timeKey: "N_1",
+        fields: [
+          ["N_2", "切片长度设置", ""], ["N_3", "当前值", ""], ["N_4", "横向微调单位", ""],
+          ["N_5", "横向速度显示", ""], ["N_6", "横向速度设置", ""], ["N_7", "纵向微调单位", ""],
+          ["N_8", "纵向速度显示", ""], ["N_9", "纵向速度比例", ""], ["N_10", "铣刀电机速度显示", ""],
+          ["N_11", "铣刀电机速度设置", ""], ["N_12", "锯片电机速度显示", ""], ["N_13", "锯片电机速度设置", ""]
+        ]
+      },
+      roller1: {
+        timeKey: "N_0",
+        fields: [
+          ["N_1", "牵引辊转速测量", ""], ["N_2", "牵引辊速度比例", ""], ["N_3", "定型2辊转速测量", ""],
+          ["N_4", "定型2辊速度比例", ""], ["N_5", "定型1辊转速测量", ""], ["N_6", "定型1辊速度比例", ""],
+          ["N_7", "冷却辊转速测量", ""], ["N_8", "冷却辊速度比例", ""], ["N_9", "下辊转速测量", ""],
+          ["N_10", "下辊速度比例", ""], ["N_11", "上辊转速测量", ""], ["N_12", "上辊速度比例", ""],
+          ["N_13", "中辊转速测量", ""], ["N_14", "中辊速度设定", ""], ["N_15", "中辊速度比例", ""],
+          ["N_16", "计量泵负载率", "%"], ["N_17", "计量泵电流测量", ""], ["N_18", "计量泵转速测量", ""],
+          ["N_19", "计量泵转速设定", ""], ["N_20", "90负载率", "%"], ["N_21", "90电流测量", ""],
+          ["N_22", "90转速设定", ""], ["N_23", "90转速测量", ""], ["N_24", "180负载率", "%"],
+          ["N_25", "180电流测量", ""], ["N_26", "180转速设定", ""], ["N_27", "180转速测量", ""]
+        ]
+      },
+      roller2: {
+        timeKey: "N_1",
+        fields: [
+          ["N_2", "180-2计量泵负载率", "%"], ["N_3", "180-2计量泵电流测量", ""], ["N_4", "180-2计量泵转速测量", ""],
+          ["N_5", "180-2计量泵转速设定", ""], ["N_6", "180-1计量泵负载率", "%"], ["N_7", "180-1计量泵电流测量", ""],
+          ["N_8", "180-1计量泵转速测量", ""], ["N_9", "180-1计量泵转速设定", ""], ["N_10", "120计量泵电流测量", ""],
+          ["N_11", "120计量泵负载率", "%"], ["N_12", "120计量泵转速测量", ""], ["N_13", "120计量泵转速设定", ""],
+          ["N_14", "120负载率", "%"], ["N_15", "120电流测量", ""], ["N_16", "120主机转速测量", ""],
+          ["N_17", "180-2主机转速测量", ""], ["N_18", "180-2主机转速设定", ""], ["N_19", "180-2主机电流测量", ""],
+          ["N_20", "180-2主机负载率", "%"], ["N_21", "120主机转速设定", ""], ["N_22", "120熔温", ""],
+          ["N_23", "180-2主机熔温", ""], ["N_24", "180-1主机熔温", ""], ["N_25", "180-1主机负载率", "%"],
+          ["N_26", "180-1电流测量", ""], ["N_27", "180-1主机转速测量", ""], ["N_28", "180-1主机转速设定", ""]
+        ]
+      }
+    };
+    const DEVICES = [
+      { id: "board-1", name: "板切机1", template: "board1", url: API_BASE + "50ce9d82ca37a1c37e5e98ac/data" },
+      { id: "board-2", name: "板切机2", template: "board2", url: API_BASE + "51c8860523e9e9fca85a54bf/data" },
+      { id: "roller-1", name: "旭联三辊线1", template: "roller1", url: API_BASE + "53bc92902d9111948f547975/data" },
+      { id: "roller-2", name: "旭联三辊线2", template: "roller2", url: API_BASE + "5971f70bcfffb60c9620a6a0/data" }
+    ];
+    const state = { activeId: DEVICES[0].id, records: new Map(), statuses: new Map() };
+    const $ = id => document.getElementById(id);
+    const el = { nav: $("deviceNav"), title: $("deviceTitle"), time: $("uploadTime"), status: $("systemStatus"), grid: $("metricGrid") };
+    const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+
+    const requestQueue = [];
+    let queueRunning = false;
+    let lastRequestAt = 0;
+    const REQUEST_INTERVAL_MS = 250;
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    function queuedFetch(url, options) {
+      return new Promise((resolve, reject) => {
+        requestQueue.push({ url, options, resolve, reject });
+        processRequestQueue();
+      });
+    }
+
+    async function processRequestQueue() {
+      if (queueRunning) return;
+      queueRunning = true;
+      while (requestQueue.length) {
+        const job = requestQueue.shift();
+        const delay = REQUEST_INTERVAL_MS - (Date.now() - lastRequestAt);
+        if (delay > 0) await wait(delay);
+        lastRequestAt = Date.now();
+        try { job.resolve(await fetch(job.url, job.options)); }
+        catch (error) { job.reject(error); }
+      }
+      queueRunning = false;
+    }
+
+    function parseTime(value) {
+      if (!value) return null;
+      const date = new Date(String(value).replace(/-/g, "/"));
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatTime(value) {
+      const date = parseTime(value);
+      return date ? date.toLocaleString("zh-CN", { hour12: false }) : "--";
+    }
+
+    function formatValue(value) {
+      if (value === null || value === undefined || value === "") return "--";
+      const number = Number(value);
+      return Number.isNaN(number) ? escapeHtml(value) : number.toLocaleString("zh-CN", { maximumFractionDigits: 3 });
+    }
+
+    function getDeviceStatus(device, record) {
+      const uploadedAt = parseTime(record?.[TEMPLATES[device.template].timeKey]);
+      const online = uploadedAt && Date.now() - uploadedAt.getTime() <= 30 * 60 * 1000;
+      return { text: online ? "在线" : "离线", className: online ? "online" : "offline" };
+    }
+
+    function renderNav() {
+      el.nav.innerHTML = DEVICES.map(device => {
+        const status = state.statuses.get(device.id) || { text: "待加载", className: "idle" };
+        return `<button class="nav-item ${device.id === state.activeId ? "active" : ""}" data-device-id="${device.id}" type="button">
+          <strong>${escapeHtml(device.name)}</strong>
+          <span class="nav-meta"><span class="status-label ${status.className}"><i class="dot"></i>${status.text}</span><span>${TEMPLATES[device.template].fields.length} 个字段</span></span>
+        </button>`;
+      }).join("");
+      el.nav.querySelectorAll("[data-device-id]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.activeId = button.dataset.deviceId;
+          renderNav();
+          showActiveDevice();
+        });
+      });
+    }
+
+    function renderMetrics(device, record) {
+      const fields = TEMPLATES[device.template].fields;
+      $("fieldCount").textContent = fields.length;
+      el.grid.innerHTML = fields.map(([key, label, unit]) => `<article class="metric-card">
+        <div class="metric-label">${escapeHtml(label)}</div>
+        <div class="metric-value">${formatValue(record?.[key])}</div>
+        <div class="metric-unit">${escapeHtml(unit)}</div>
+      </article>`).join("");
+    }
+
+    function renderEmpty(message, isError = false) {
+      $("fieldCount").textContent = "--";
+      el.grid.innerHTML = `<div class="empty ${isError ? "error" : ""}">${escapeHtml(message)}</div>`;
+    }
+
+    function updateSummary() {
+      let online = 0;
+      let offline = 0;
+      state.statuses.forEach(status => {
+        if (status.className === "online") online += 1;
+        if (status.className === "offline") offline += 1;
+      });
+      $("totalCount").textContent = DEVICES.length;
+      $("onlineCount").textContent = online;
+      $("offlineCount").textContent = offline;
+    }
+
+    async function fetchLatestRecord(device) {
+      const template = TEMPLATES[device.template];
+      const body = JSON.stringify({ limit: 1, skip: 0, sort: { [template.timeKey]: "desc" } });
+      const authHeaders = [
+        { "Content-Type": "application/json", "x-api-key": API_KEY },
+        { "Content-Type": "application/json", "api-key": API_KEY },
+        { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` }
+      ];
+      let lastError = "请求失败";
+      for (const headers of authHeaders) {
+        try {
+          const response = await queuedFetch(device.url, { method: "POST", headers, body });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          const rows = Array.isArray(result.data) ? result.data : (result.data && typeof result.data === "object" ? [result.data] : []);
+          if (!rows.length) throw new Error("接口返回为空");
+          return rows[0];
+        } catch (error) { lastError = error.message; }
+      }
+      throw new Error(lastError);
+    }
+
+    async function loadDevice(device) {
+      state.statuses.set(device.id, { text: "加载中", className: "loading" });
+      renderNav();
+      try {
+        const record = await fetchLatestRecord(device);
+        state.records.set(device.id, record);
+        state.statuses.set(device.id, getDeviceStatus(device, record));
+      } catch (error) {
+        state.statuses.set(device.id, { text: "离线", className: "offline" });
+        console.error(`${device.name} 数据加载失败:`, error.message);
+      } finally {
+        updateSummary();
+        renderNav();
+        $("lastRefresh").textContent = new Date().toLocaleString("zh-CN", { hour12: false });
+        if (device.id === state.activeId) showActiveDevice();
+      }
+    }
+
+    function showActiveDevice() {
+      const device = DEVICES.find(item => item.id === state.activeId);
+      if (!device) return;
+      el.title.textContent = device.name;
+      const record = state.records.get(device.id);
+      if (!record) {
+        el.time.textContent = "加载中";
+        el.status.textContent = state.statuses.get(device.id)?.text || "加载中";
+        renderEmpty("正在加载设备最新数据...");
+        if (!state.statuses.has(device.id)) loadDevice(device);
+        return;
+      }
+      renderMetrics(device, record);
+      el.time.textContent = formatTime(record[TEMPLATES[device.template].timeKey]);
+      const status = state.statuses.get(device.id) || getDeviceStatus(device, record);
+      el.status.textContent = status.text;
+      el.status.style.color = status.className === "online" ? "var(--green)" : "var(--red)";
+    }
+
+    async function refreshAll() {
+      const button = $("refreshAll");
+      button.disabled = true;
+      button.textContent = "刷新中...";
+      await Promise.all(DEVICES.map(loadDevice));
+      button.disabled = false;
+      button.textContent = "刷新全部设备";
+    }
+
+    $("refreshAll").addEventListener("click", refreshAll);
+    renderNav();
+    refreshAll();
+  </script>
+</body>
+</html>
