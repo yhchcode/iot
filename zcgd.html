@@ -40,7 +40,7 @@
       "上一模周期时间（s）","上3位置（mm）","上4位置（mm）","上5温度（℃）","上6压力（bar）","上8压力（bar）","上7比例（%）","射嘴温度（℃）","温度1（℃）","温度2（℃）","温度3（℃）"
     ];
     const INJECTION_MODEL_2 = [
-      "产量","设备状态","实时周期","动作计时","输出压力","输出速度","输出背压","温度1(℃)","温度2(℃)","温度3(℃)","温度4(℃)","温度5(℃)","油温(℃)","上模周期","温度设定值1(℃)","温度设定值2(℃)","温度设定值3(℃)","温度设定值4(℃)","温度设定值5(℃)"
+      "设备状态","实时周期","动作计时","输出压力","输出速度","输出背压","温度1(℃)","温度2(℃)","温度3(℃)","温度4(℃)","温度5(℃)","油温(℃)","上模周期","温度设定值1(℃)","温度设定值2(℃)","温度设定值3(℃)","温度设定值4(℃)","温度设定值5(℃)"
     ];
     const INJECTION_SPECS = [
       ["一号注塑机","5396141929bef5e4f76414d1",1],["二号注塑机","5c94d978a73dd6747cd8d064",1],["三号注塑机","5c9c1eb3de9581772f85b08b",1],["四号注塑机","55d505009e168c53fed1b97f",1],["五号注塑机","5f5b569322d08c0675d39e69",1],["六号注塑机","5111fe8168a0a3fe73e6b324",1],["七号注塑机","5422a3bc754d7cf8e5e0f5df",1],["八号注塑机","55f712ed187954d4c1bd18b1",1],["九号注塑机","56bd88e175b23e4cb3888db5",1],["十号注塑机","5d2c2fc6c451a7f6f3eb6e60",1],["十一号注塑机","50abe13c52e2f1d204acce0c",1],["十二号注塑机","546a3a590863501f99bb8522",1],["十三号注塑机","55b5eeed64d2a4a37a61b881",1],["十四号注塑机","5d521d43bed8f283cdc0f997",1],["十五号注塑机","539df8e73245bf63cb9d4851",1],["十六号注塑机","5ce7c5360b3c334fc7922005",1],["十七号注塑机","5d952023bd6b13a2a8ad0434",1],["十八号注塑机","5e3fe9e3c49a1f132056970d",1],["十九号注塑机","59a9e142ce18adf5523631f9",1],["二十号注塑机","5ad07445fbe186259ef94636",1],["二十一号注塑机","533a568de1b7f657a5ca79c8",2],["二十二号注塑机","5a19e0f00a2d06513910f8cc",2],["四十二号注塑机","546a2751f4561a9431145607",1],["四十三号注塑机","5a5e0915a72d4397e6813bd1",1],["四十四号注塑机","5aa2a7c85e7f6a8da264ed53",1],["四十五号注塑机","5f05162002c43abcd1214e25",1],["四十六号注塑机","58f9fc377492cde19accfefc",1],["四十七号注塑机","50204d83a83abb8e5728ea5a",1],["四十八号注塑机","5e8420ec13f203d13dd441ee",1],["四十九号注塑机","5c5b30dfe502673223727591",1],["五十号注塑机","5f33f5ce3340bb9feb57fa7d",1],["五十一号注塑机","5a8537d10ee64790d52299ae",1],["五十二号注塑机","527828e6109064e8374ec01a",1],["五十三号注塑机","5e4d57d6b94956acb8b0182b",1],["五十四号注塑机","59696382cbef88f02f82b25b",1]
@@ -53,7 +53,7 @@
       ["2号大隈CNC","5121be36a25717adc7925049","大隈CNC",10,["X轴当前位置","Y轴当前位置","Z轴当前位置","X轴目标位置","Y轴目标位置","Z轴目标位置","X轴相对位置","Y轴相对位置","Z轴相对位置"],Array(9).fill("number")]
     ];
     const DEVICES = [
-      ...INJECTION_SPECS.map(([name,entry,model])=>({name,type:`注塑机 · 型号${model}`,apiUrl:BASE+entry+"/data",timeKey:"N_1",fields:(model===1?INJECTION_MODEL_1:INJECTION_MODEL_2).map((label,index)=>({key:`N_${index+2}`,label,unit:"",type:"number"}))})),
+      ...INJECTION_SPECS.map(([name,entry,model])=>({name,type:`注塑机 · 型号${model}`,apiUrl:BASE+entry+"/data",timeKey:"N_1",fields:(model===1?INJECTION_MODEL_1:INJECTION_MODEL_2).map((label,index)=>({key:`N_${index+(model===1?2:3)}`,label,unit:"",type:"number"}))})),
       ...CNC_SPECS.map(([name,entry,type,timeKey,labels,types])=>({name,type,apiUrl:BASE+entry+"/data",timeKey:`N_${timeKey}`,fields:labels.map((label,index)=>({key:`N_${index+1}`,label,unit:"",type:types[index]}))}))
     ];
     const ONLINE_WINDOW_MS=40*60*1000, REQUEST_INTERVAL_MS=210;
