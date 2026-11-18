@@ -37,7 +37,7 @@
     const API_KEY = "Dz8GA5mBMGIAUF5SaMD2HsC7Rd5arrMh";
     const BASE = "https://shurui.online-office.net/openapi/v1/app/5a65ffd3860a6444fc850ea0/entry/";
     const INJECTION_MODEL_1 = [
-      "上一模周期时间（s）","上3位置（mm）","上4位置（mm）","上5温度（℃）","上6压力（bar）","上8压力（bar）","上7比例（%）","射嘴温度（℃）","温度1（℃）","温度2（℃）","温度3（℃）","生产计数","生产目标"
+      "上一模周期时间（s）","上3位置（mm）","上4位置（mm）","上5温度（℃）","上6压力（bar）","上8压力（bar）","上7比例（%）","射嘴温度（℃）","温度1（℃）","温度2（℃）","温度3（℃）"
     ];
     const INJECTION_MODEL_2 = [
       "产量","设备状态","实时周期","动作计时","输出压力","输出速度","输出背压","温度1(℃)","温度2(℃)","温度3(℃)","温度4(℃)","温度5(℃)","油温(℃)","上模周期","温度设定值1(℃)","温度设定值2(℃)","温度设定值3(℃)","温度设定值4(℃)","温度设定值5(℃)"
@@ -56,7 +56,7 @@
       ...INJECTION_SPECS.map(([name,entry,model])=>({name,type:`注塑机 · 型号${model}`,apiUrl:BASE+entry+"/data",timeKey:"N_1",fields:(model===1?INJECTION_MODEL_1:INJECTION_MODEL_2).map((label,index)=>({key:`N_${index+2}`,label,unit:"",type:"number"}))})),
       ...CNC_SPECS.map(([name,entry,type,timeKey,labels,types])=>({name,type,apiUrl:BASE+entry+"/data",timeKey:`N_${timeKey}`,fields:labels.map((label,index)=>({key:`N_${index+1}`,label,unit:"",type:types[index]}))}))
     ];
-    const ONLINE_WINDOW_MS=30*60*1000, REQUEST_INTERVAL_MS=210;
+    const ONLINE_WINDOW_MS=40*60*1000, REQUEST_INTERVAL_MS=210;
     const state={active:0,records:new Map(),statuses:new Map(),errors:new Map(),inflight:new Map(),refreshing:false,lastRefresh:null};
     const $=id=>document.getElementById(id);
     function esc(value){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));}
